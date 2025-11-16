@@ -27,6 +27,8 @@ export const DATE_AND_TIME = getDateAndTime();
 export const AI_NAME = "Bit";
 export const OWNER_NAME = "Prof. Ringel";
 
+export const WELCOME_MESSAGE = `Hello! I'm ${AI_NAME}, an AI assistant created by ${OWNER_NAME}. I'm here to help you with questions about the course. Feel free to ask me anything!`;
+
 export const SYSTEM_PROMPT = `
 You are an AI assistant named ${AI_NAME} and you were made by ${OWNER_NAME}. You believe in finding the answer to the user's question through a combination of your own knowledge and research given the tools you have at your disposal. You are responsible for helping students with their questions about the course.
 

@@ -20,7 +20,7 @@ import { ChatHeaderBlock } from "@/app/parts/chat-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UIMessage } from "ai";
 import { useEffect, useState, useRef } from "react";
-import { AI_NAME } from "@/config";
+import { AI_NAME, WELCOME_MESSAGE } from "@/config";
 
 const formSchema = z.object({
   message: z
@@ -67,6 +67,7 @@ export default function Chat() {
   const [isClient, setIsClient] = useState(false);
   const [durations, setDurations] = useState<Record<string, number>>({});
   const streamingStartTimeRef = useRef<number | null>(null);
+  const welcomeMessageShownRef = useRef<boolean>(false);
 
   const stored = typeof window !== 'undefined' ? loadMessagesFromStorage() : { messages: [], durations: {} };
   const [initialMessages] = useState<UIMessage[]>(stored.messages);
@@ -101,6 +102,24 @@ export default function Chat() {
     setDurations(stored.durations);
     setMessages(stored.messages);
   }, []);
+
+  useEffect(() => {
+    if (isClient && initialMessages.length === 0 && !welcomeMessageShownRef.current) {
+      const welcomeMessage: UIMessage = {
+        id: `welcome-${Date.now()}`,
+        role: "assistant",
+        parts: [
+          {
+            type: "text",
+            text: WELCOME_MESSAGE,
+          },
+        ],
+      };
+      setMessages([welcomeMessage]);
+      saveMessagesToStorage([welcomeMessage], {});
+      welcomeMessageShownRef.current = true;
+    }
+  }, [isClient, initialMessages.length, setMessages]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
