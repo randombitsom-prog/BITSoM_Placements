@@ -68,13 +68,30 @@ export async function POST(req: Request) {
     let placementStatsContext = '';
 
     if (latestUserText) {
+        console.log('[VERCEL LOG] User query:', latestUserText);
         try {
             const pineconeResult = await searchPinecone(latestUserText);
             placementsContext = pineconeResult.placementsContext;
             pineconeCompanies = pineconeResult.placementCompanies || [];
             placementStatsContext = pineconeResult.placementStatsContext || '';
+            
+            // Comprehensive logging for Vercel runtime
+            console.log('[VERCEL LOG] Pinecone search completed:', {
+                query: latestUserText,
+                placementsContextLength: placementsContext.length,
+                placementsContextPreview: placementsContext.substring(0, 200) + (placementsContext.length > 200 ? '...' : ''),
+                companiesCount: pineconeCompanies.length,
+                companies: pineconeCompanies,
+                placementStatsContextLength: placementStatsContext.length,
+                placementStatsContextPreview: placementStatsContext.substring(0, 200) + (placementStatsContext.length > 200 ? '...' : ''),
+            });
         } catch (error) {
             // Fail open: if Pinecone is unavailable, still answer without RAG context.
+            console.error('[VERCEL LOG] Pinecone search error:', {
+                query: latestUserText,
+                error: error instanceof Error ? error.message : String(error),
+                stack: error instanceof Error ? error.stack : undefined,
+            });
             placementsContext = '';
             pineconeCompanies = [];
             placementStatsContext = '';
@@ -96,6 +113,14 @@ ${pineconeCompanies.join(', ')}
 ${placementStatsContext}
 </placement_stats_namespace_context>
 `;
+
+    // Log what's being sent to OpenAI
+    console.log('[VERCEL LOG] System prompt context summary:', {
+        hasPlacementsContext: !!placementsContext,
+        companiesList: pineconeCompanies.join(', ') || '(empty)',
+        hasStatsContext: !!placementStatsContext,
+        combinedPromptLength: combinedSystemPrompt.length,
+    });
 
     const result = streamText({
         model: MODEL,
