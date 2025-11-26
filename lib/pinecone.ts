@@ -183,11 +183,18 @@ async function searchTranscriptsNamespace(query: string): Promise<string> {
     const transcriptEntries: string[] = [];
     for (const match of matches) {
         const metadata = match.metadata || {};
-        const company = metadata.company || 'Unknown';
-        const interviewee = metadata.interviewee || 'Unknown';
-        const transcript = metadata.transcript || '';
-        const chunkInfo = metadata.total_chunks > 1 
-            ? ` (chunk ${metadata.chunk_index + 1}/${metadata.total_chunks})`
+        const company = String(metadata.company || 'Unknown');
+        const interviewee = String(metadata.interviewee || 'Unknown');
+        const transcript = String(metadata.transcript || '');
+        
+        // Safely extract chunk info
+        const totalChunks = typeof metadata.total_chunks === 'number' ? metadata.total_chunks : 
+                           typeof metadata.total_chunks === 'string' ? parseInt(metadata.total_chunks, 10) : 1;
+        const chunkIndex = typeof metadata.chunk_index === 'number' ? metadata.chunk_index :
+                          typeof metadata.chunk_index === 'string' ? parseInt(metadata.chunk_index, 10) : 0;
+        
+        const chunkInfo = totalChunks > 1 
+            ? ` (chunk ${chunkIndex + 1}/${totalChunks})`
             : '';
         
         if (transcript) {
