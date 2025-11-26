@@ -71,6 +71,44 @@ export async function POST(req: Request) {
             const pineconeResult = await searchPinecone(latestUserText);
             pineconeContext = pineconeResult.context;
             pineconeCompanies = pineconeResult.companies || [];
+
+            // If we have company data from Pinecone, answer directly using it.
+            if (pineconeCompanies.length > 0) {
+                const stream = createUIMessageStream({
+                    execute({ writer }) {
+                        const textId = 'pinecone-company-list';
+
+                        writer.write({
+                            type: 'start',
+                        });
+
+                        writer.write({
+                            type: 'text-start',
+                            id: textId,
+                        });
+
+                        const companiesList = pineconeCompanies.join(', ');
+                        const answer = `Based on the latest placement data I have in the BITSoM IPCS knowledge base, the following companies are currently in scope: ${companiesList}. If you want, I can also share roles, locations, compensation, and cluster/day details for any of these.`;
+
+                        writer.write({
+                            type: 'text-delta',
+                            id: textId,
+                            delta: answer,
+                        });
+
+                        writer.write({
+                            type: 'text-end',
+                            id: textId,
+                        });
+
+                        writer.write({
+                            type: 'finish',
+                        });
+                    },
+                });
+
+                return createUIMessageStreamResponse({ stream });
+            }
         } catch (error) {
             // Fail open: if Pinecone is unavailable, still answer without RAG context.
             pineconeContext = '';
