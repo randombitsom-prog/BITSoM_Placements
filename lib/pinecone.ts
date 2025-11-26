@@ -90,17 +90,19 @@ async function searchPlacementStatsNamespace(query: string): Promise<string> {
     });
 
     // Pinecone returns { matches: [...] } structure
+    // Cast to any to access matches property that exists at runtime but not in types
+    const resultsAny = results as any;
     let records: any[] = [];
     if (Array.isArray(results)) {
         records = results;
-    } else if (results?.matches && Array.isArray(results.matches)) {
-        records = results.matches;
-    } else if (results?.records && Array.isArray(results.records)) {
-        records = results.records;
-    } else if (results?.result?.hits && Array.isArray(results.result.hits)) {
-        records = results.result.hits;
-    } else if (results?.data && Array.isArray(results.data)) {
-        records = results.data;
+    } else if (resultsAny?.matches && Array.isArray(resultsAny.matches)) {
+        records = resultsAny.matches;
+    } else if (resultsAny?.records && Array.isArray(resultsAny.records)) {
+        records = resultsAny.records;
+    } else if (resultsAny?.result?.hits && Array.isArray(resultsAny.result.hits)) {
+        records = resultsAny.result.hits;
+    } else if (resultsAny?.data && Array.isArray(resultsAny.data)) {
+        records = resultsAny.data;
     }
 
     console.log('[VERCEL LOG] Placement_stats namespace parsed records:', {
