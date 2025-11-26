@@ -1,4 +1,5 @@
 import { Pinecone } from '@pinecone-database/pinecone';
+import OpenAI from 'openai';
 import { PINECONE_TOP_K } from '@/config';
 import { searchResultsToChunks, getSourcesFromChunks, getContextFromSources } from '@/lib/sources';
 import { PINECONE_INDEX_NAME } from '@/config';
@@ -7,11 +8,28 @@ if (!process.env.PINECONE_API_KEY) {
     throw new Error('PINECONE_API_KEY is not set');
 }
 
+if (!process.env.OPENAI_API_KEY) {
+    throw new Error('OPENAI_API_KEY is not set');
+}
+
 export const pinecone = new Pinecone({
     apiKey: process.env.PINECONE_API_KEY,
 });
 
 export const pineconeIndex = pinecone.Index(PINECONE_INDEX_NAME);
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Generate embeddings using OpenAI text-embedding-3-large (3072 dimensions)
+async function generateEmbedding(text: string): Promise<number[]> {
+    const response = await openai.embeddings.create({
+        model: 'text-embedding-3-large',
+        input: text,
+    });
+    return response.data[0].embedding;
+}
 
 export type PlacementNamespacesResult = {
     placementsContext: string;
@@ -21,21 +39,22 @@ export type PlacementNamespacesResult = {
 
 async function searchPlacementsNamespace(query: string): Promise<{ context: string; companies: string[] }> {
     console.log('[VERCEL LOG] Searching placements namespace with query:', query);
-    const results = await pineconeIndex.namespace('placements').searchRecords({
-        query: {
-            inputs: {
-                text: query,
-            },
+    
+    // Generate embedding for the query
+    const queryEmbedding = await generateEmbedding(query);
+    console.log('[VERCEL LOG] Generated embedding, dimension:', queryEmbedding.length);
+    
+    const results = await pineconeIndex.namespace('placements').query({
+        vector: queryEmbedding,
             topK: PINECONE_TOP_K,
-        },
-        fields: ['text', 'pre_context', 'post_context', 'source_url', 'source_description', 'source_type', 'order'],
+        includeMetadata: true,
     });
 
     console.log('[VERCEL LOG] Placements namespace raw results:', {
         hasResults: !!results,
-        isArray: Array.isArray(results),
-        hasMatches: !!(results && (results as any).matches),
-        matchesCount: (results && (results as any).matches) ? (results as any).matches.length : 0,
+        hasMatches: !!(results && results.matches),
+        matchesCount: results?.matches?.length || 0,
+        firstMatchId: results?.matches?.[0]?.id || 'none',
     });
 
     const chunks = searchResultsToChunks(results);
@@ -72,55 +91,42 @@ async function searchPlacementsNamespace(query: string): Promise<{ context: stri
 
 async function searchPlacementStatsNamespace(query: string): Promise<string> {
     console.log('[VERCEL LOG] Searching placement_stats namespace with query:', query);
-    const results = await pineconeIndex.namespace('placement_stats').searchRecords({
-        query: {
-            inputs: {
-                text: query,
-            },
-            topK: PINECONE_TOP_K,
-        },
-        fields: ['text', 'name', 'company', 'ctc', 'status', 'yoe'],
+    
+    // Generate embedding for the query
+    const queryEmbedding = await generateEmbedding(query);
+    console.log('[VERCEL LOG] Generated embedding for stats, dimension:', queryEmbedding.length);
+    
+    const results = await pineconeIndex.namespace('placement_stats').query({
+        vector: queryEmbedding,
+        topK: PINECONE_TOP_K,
+        includeMetadata: true,
     });
 
     console.log('[VERCEL LOG] Placement_stats namespace raw results:', {
         hasResults: !!results,
-        isArray: Array.isArray(results),
-        hasMatches: !!(results && (results as any).matches),
-        matchesCount: (results && (results as any).matches) ? (results as any).matches.length : 0,
+        hasMatches: !!(results && results.matches),
+        matchesCount: results?.matches?.length || 0,
+        firstMatchId: results?.matches?.[0]?.id || 'none',
     });
 
-    // Pinecone returns { matches: [...] } structure
-    // Cast to any to access matches property that exists at runtime but not in types
-    const resultsAny = results as any;
-    let records: any[] = [];
-    if (Array.isArray(results)) {
-        records = results;
-    } else if (resultsAny?.matches && Array.isArray(resultsAny.matches)) {
-        records = resultsAny.matches;
-    } else if (resultsAny?.records && Array.isArray(resultsAny.records)) {
-        records = resultsAny.records;
-    } else if (resultsAny?.result?.hits && Array.isArray(resultsAny.result.hits)) {
-        records = resultsAny.result.hits;
-    } else if (resultsAny?.data && Array.isArray(resultsAny.data)) {
-        records = resultsAny.data;
-    }
-
-    console.log('[VERCEL LOG] Placement_stats namespace parsed records:', {
-        recordsCount: records.length,
-        firstRecordMetadata: records[0]?.metadata || 'none',
+    // query() returns { matches: [...] } where each match has { id, score, metadata }
+    const matches = results?.matches || [];
+    
+    console.log('[VERCEL LOG] Placement_stats namespace parsed matches:', {
+        matchesCount: matches.length,
+        firstMatchMetadata: matches[0]?.metadata || 'none',
     });
 
-    if (!Array.isArray(records) || records.length === 0) {
-        console.log('[VERCEL LOG] No records found in placement_stats namespace');
+    if (matches.length === 0) {
+        console.log('[VERCEL LOG] No matches found in placement_stats namespace');
         return '';
     }
 
     const lines: string[] = [];
-    for (const record of records) {
-        // Check metadata first (as shown in user's query response), then fields
-        const metadata = record.metadata || {};
-        const fields = record.fields || record.values || record.data || {};
-        const text = metadata.text || fields.text || record.text || '';
+    for (const match of matches) {
+        // query() returns matches with metadata directly
+        const metadata = match.metadata || {};
+        const text = metadata.text || '';
         if (text) {
             lines.push(String(text));
         }
