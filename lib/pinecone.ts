@@ -273,9 +273,10 @@ async function searchLinkedInProfilesNamespace(query: string): Promise<string> {
         const url = String(metadata.linkedin_url || 'N/A');
         const companies = Array.isArray(metadata.past_companies) ? metadata.past_companies.filter(Boolean).join(', ') : '';
         const companiesText = companies || 'Past companies not available';
+        const linkLabel = url && url !== 'N/A' ? `[LinkedIn Profile](${url})` : 'LinkedIn profile not available';
         return `# Profile ${idx + 1}
 Name: ${name}
-LinkedIn: ${url}
+LinkedIn: ${linkLabel}
 Past companies: ${companiesText}`;
     });
 
