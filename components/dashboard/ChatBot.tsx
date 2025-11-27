@@ -342,7 +342,7 @@ export default function ChatBot() {
   };
 
   return (
-    <Card className="h-[calc(100vh-120px)] flex flex-col sticky top-4 bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl">
+    <Card className="h-[calc(100vh-120px)] flex flex-col sticky top-4 bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl overflow-hidden">
       <CardHeader className="border-b border-slate-700/50 bg-gradient-to-r from-orange-600 to-orange-700 rounded-t-2xl">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm shadow-sm">
@@ -354,8 +354,8 @@ export default function ChatBot() {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 p-4 bg-slate-950/50" ref={scrollAreaRef}>
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+        <ScrollArea className="flex-1 h-full p-4 bg-slate-950/50" ref={scrollAreaRef}>
           <div className="space-y-4">
             {messages.map((message) => (
               <div

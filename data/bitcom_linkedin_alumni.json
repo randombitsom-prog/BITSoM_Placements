@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T11:59:10.568785",
-  "total_profiles": 50,
+  "scraped_at": "2025-11-27T12:02:47.369891",
+  "total_profiles": 53,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -638,6 +638,35 @@
         "GoogleGoogle",
         "KPMGKPMGAccountingAccounting5,081,569 followers5,081,569 followers"
       ]
+    },
+    {
+      "Name": "Vera Tilson",
+      "LinkedIn URL": "https://www.linkedin.com/in/vera-tilson-4677353",
+      "Past Companies": []
+    },
+    {
+      "Name": "Shantanu Singh Parihar",
+      "LinkedIn URL": "https://www.linkedin.com/in/shantanu-singh-parihar-51b774202",
+      "Past Companies": [
+        "BITSoM - BITS School of Management",
+        "Koch Business Solutions India",
+        "Koch",
+        "InforInfor899,926 followers899,926 followers",
+        "KochKoch286,695 followers286,695 followers",
+        "QuantiphiQuantiphi",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,382 followers7,231,382 followers"
+      ]
+    },
+    {
+      "Name": "Dhruv Krishnani",
+      "LinkedIn URL": "https://www.linkedin.com/in/dhruv-krishnani-a58b7825b",
+      "Past Companies": [
+        "Christ University, Bangalore",
+        "DeloitteDeloitte20,406,078 followers20,406,078 followers",
+        "J.P. MorganJ.P. Morgan5,326,457 followers5,326,457 followers",
+        "J.P. MorganJ.P. Morgan",
+        "The Trade AcademyThe Trade Academy"
+      ]
     }
   ],
   "all_companies": [
@@ -680,6 +709,7 @@
     "COSGrid Networks",
     "Career For FreshersCareer For Freshers",
     "ChemBizRChemBizRFull-time · 2 yrs 11 mosFull-time · 2 yrs 11 mos",
+    "Christ University, Bangalore",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,230,685 followers7,230,685 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,230,699 followers7,230,699 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,230,708 followers7,230,708 followers",
@@ -707,6 +737,7 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,363 followers7,231,363 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,370 followers7,231,370 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,371 followers7,231,371 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,382 followers7,231,382 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
@@ -728,6 +759,7 @@
     "DeloitteDeloitte20,405,975 followers20,405,975 followers",
     "DeloitteDeloitte20,405,981 followers20,405,981 followers",
     "DeloitteDeloitte20,406,039 followers20,406,039 followers",
+    "DeloitteDeloitte20,406,078 followers20,406,078 followers",
     "Deutsche BankDeutsche Bank3,133,612 followers3,133,612 followers",
     "DirectorDirectorSep 2019 - Sep 2023 · 4 yrs 1 moSep 2019 to Sep 2023 · 4 yrs 1 mo",
     "Domino's Pizza",
@@ -791,6 +823,7 @@
     "Inc42 MediaInc42 Media",
     "Indian Institute of Management Ahmedabad",
     "Indian School of BusinessIndian School of Business536,180 followers536,180 followers",
+    "InforInfor899,926 followers899,926 followers",
     "Instagram",
     "Instituto Universitario Fernández-Vega",
     "J.P. MorganJ.P. Morgan",
@@ -798,6 +831,7 @@
     "J.P. MorganJ.P. Morgan5,326,371 followers5,326,371 followers",
     "J.P. MorganJ.P. Morgan5,326,421 followers5,326,421 followers",
     "J.P. MorganJ.P. Morgan5,326,440 followers5,326,440 followers",
+    "J.P. MorganJ.P. Morgan5,326,457 followers5,326,457 followers",
     "J.P. MorganJ.P. MorganFinancial ServicesFinancial Services5,325,308 followers5,325,308 followers",
     "JPMorganChaseJPMorganChase6,634,746 followers6,634,746 followers",
     "JPMorganChaseJPMorganChase6,635,935 followers6,635,935 followers",
@@ -815,6 +849,9 @@
     "Karolinska Institutet",
     "KearneyKearney638,796 followers638,796 followers",
     "Kimberly-Clark",
+    "Koch",
+    "Koch Business Solutions India",
+    "KochKoch286,695 followers286,695 followers",
     "L'OréalL'Oréal6,229,438 followers6,229,438 followers",
     "Lightspeed",
     "LinkedIn News IndiaLinkedIn News India",
@@ -860,6 +897,7 @@
     "PwCPwC7,576,123 followers7,576,123 followers",
     "PwCPwC7,576,158 followers7,576,158 followers",
     "PwCPwC7,576,182 followers7,576,182 followers",
+    "QuantiphiQuantiphi",
     "RazorpayRazorpay",
     "SBOA School & Junior College logo",
     "SLB",
@@ -890,6 +928,7 @@
     "The Hershey Company",
     "The Indian Public School logo",
     "The Program on Negotiation",
+    "The Trade AcademyThe Trade Academy",
     "TresVistaTresVistaFull-time · 3 yrs 1 moFull-time · 3 yrs 1 mo",
     "Trimble Inc.Trimble Inc.Full-time · 3 yrs 10 mosFull-time · 3 yrs 10 mosHybridHybrid",
     "UNC Kenan-Flagler Business School",
@@ -925,5 +964,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 283
+  "companies_count": 293
 }
