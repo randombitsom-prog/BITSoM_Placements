@@ -480,29 +480,29 @@ export default function ChatBot({ onExpandChange }: ChatBotProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleQuickAction("Show McKinsey interview transcript")}
+              onClick={() => handleQuickAction("Show KPMG interview transcripts")}
               className="bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-orange-500/50 rounded-lg text-xs"
               disabled={isLoading}
             >
-              McKinsey Interview
+              KPMG Interview Transcripts
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleQuickAction("Consulting preparation tips")}
+              onClick={() => handleQuickAction("Show me current open job postings")}
               className="bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-orange-500/50 rounded-lg text-xs"
               disabled={isLoading}
             >
-              Prep Tips
+              Open Job Postings
             </Button>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => handleQuickAction("Tell me about CTC stats")}
+              onClick={() => handleQuickAction("Share J.P. Morgan alumni placement details")}
               className="bg-slate-800/50 border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white hover:border-orange-500/50 rounded-lg text-xs"
               disabled={isLoading}
             >
-              CTC Info
+              J.P. Morgan Alumni
             </Button>
           </div>
         </div>
