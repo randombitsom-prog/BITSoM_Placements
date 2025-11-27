@@ -144,6 +144,7 @@ export default function Dashboard() {
   const [companyOffers, setCompanyOffers] = useState<CompanyOffer[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -216,9 +217,17 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-[1400px] mx-auto p-6 flex flex-col xl:flex-row gap-6">
+      <div
+        className={`max-w-[1400px] mx-auto p-6 flex flex-col xl:flex-row gap-6 transition-all duration-300 ${
+          isChatExpanded ? 'xl:items-center xl:justify-center' : ''
+        }`}
+      >
         {/* Main Content - 2/3 width */}
-        <div className="flex-1 space-y-6">
+        <div
+          className={`flex-1 space-y-6 transition-all duration-300 ${
+            isChatExpanded ? 'max-w-4xl w-full mx-auto' : ''
+          }`}
+        >
           {/* Key Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
@@ -503,7 +512,7 @@ export default function Dashboard() {
 
         {/* ChatBot - 1/3 width */}
         <div className="w-full lg:w-[420px]">
-          <ChatBot />
+          <ChatBot onExpandChange={setIsChatExpanded} />
         </div>
       </div>
     </div>

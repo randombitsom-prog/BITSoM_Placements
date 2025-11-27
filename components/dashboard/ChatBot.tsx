@@ -31,7 +31,11 @@ const WELCOME_MESSAGE: Message = {
   timestamp: new Date(),
 };
 
-export default function ChatBot() {
+type ChatBotProps = {
+  onExpandChange?: (expanded: boolean) => void;
+};
+
+export default function ChatBot({ onExpandChange }: ChatBotProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
@@ -46,6 +50,10 @@ export default function ChatBot() {
       }
     }
   }, [messages]);
+
+  useEffect(() => {
+    onExpandChange?.(isExpanded);
+  }, [isExpanded, onExpandChange]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
@@ -361,9 +369,9 @@ export default function ChatBot() {
 
   return (
     <Card
-      className={`flex flex-col bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl overflow-hidden transition-all ${
+      className={`flex flex-col bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl overflow-hidden transition-all duration-300 ${
         isExpanded
-          ? 'fixed inset-0 z-50 max-w-5xl mx-auto my-6 rounded-3xl h-[80vh]'
+          ? 'fixed inset-0 z-50 w-[80vw] max-w-[1600px] h-[80vh] rounded-3xl left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
           : 'h-[calc(100vh-120px)] sticky top-4 rounded-3xl'
       }`}
     >

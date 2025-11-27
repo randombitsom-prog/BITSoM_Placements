@@ -4,7 +4,7 @@
 # Usage: ./deploy.sh "commit message"
 # Or: ./deploy.sh (will prompt for commit message)
 
-cd /Users/sahil/Desktop/MyAI3
+cd /Users/sahil/Desktop/BITSoM_Placements
 
 # Get commit message from argument or prompt
 if [ -z "$1" ]; then
