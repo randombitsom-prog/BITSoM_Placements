@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ interface Message {
   timestamp: Date;
 }
 
+const LINK_REGEX = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+
 const cleanResponseText = (text: string) => {
   if (!text) return '';
   let cleaned = text.replace(/\*\*/g, '');
@@ -21,6 +23,48 @@ const cleanResponseText = (text: string) => {
   cleaned = cleaned.replace(/\$/g, '₹');
   cleaned = cleaned.replace(/Sources?:[\s\S]*$/i, '').trim();
   return cleaned;
+};
+
+const renderMessageSegments = (text: string) => {
+  const nodes: ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = LINK_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.substring(lastIndex, match.index));
+    }
+
+    nodes.push(
+      <a
+        key={`link-${match.index}-${match[2]}`}
+        href={match[2]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-orange-300 underline underline-offset-2 break-all hover:text-orange-200 transition"
+      >
+        {match[1]}
+      </a>
+    );
+
+    lastIndex = LINK_REGEX.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.substring(lastIndex));
+  }
+
+  return nodes;
+};
+
+const renderMessageContent = (text: string) => {
+  const lines = text.split('\n');
+  return lines.map((line, idx) => (
+    <span key={`line-${idx}`}>
+      {renderMessageSegments(line)}
+      {idx < lines.length - 1 && <br />}
+    </span>
+  ));
 };
 
 const WELCOME_MESSAGE: Message = {
@@ -423,8 +467,8 @@ export default function ChatBot({ onExpandChange }: ChatBotProps) {
                       : 'bg-slate-800/80 text-slate-100 border border-slate-700/50 shadow-lg'
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.text}
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+                    {renderMessageContent(message.text)}
                   </p>
                   {message.text && (
                     <p className="text-xs mt-2 opacity-60">
