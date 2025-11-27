@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T14:06:51.433555",
-  "total_profiles": 78,
+  "scraped_at": "2025-11-27T14:12:26.664512",
+  "total_profiles": 82,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -893,6 +893,45 @@
         "IBMIBM18,966,206 followers18,966,206 followers",
         "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,218 followers3,713,218 followers"
       ]
+    },
+    {
+      "Name": "Fazlur Shah",
+      "LinkedIn URL": "https://www.linkedin.com/in/fazlurshah",
+      "Past Companies": [
+        "Angel InvestorAngel InvestorHooLivHooLivDec 2024 - Present · 1 yrDec 2024 to Present · 1 yr",
+        "McKinsey & CompanyMcKinsey & Company6,814,062 followers6,814,062 followers",
+        "Harvard Business ReviewHarvard Business Review14,561,881 followers14,561,881 followers",
+        "Bimtek GroupBimtek Group",
+        "KearneyKearney",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,629 followers7,231,629 followers"
+      ]
+    },
+    {
+      "Name": "Unknown",
+      "LinkedIn URL": "https://www.linkedin.com/in/shramay/details/interests",
+      "Past Companies": []
+    },
+    {
+      "Name": "More profiles for you",
+      "LinkedIn URL": "https://www.linkedin.com/in/shramay/overlay/browsemap-recommendations",
+      "Past Companies": [
+        "BITSoM - BITS School of ManagementBITSoM - BITS School of ManagementMBAMBA",
+        "Ashoka UniversityAshoka UniversityB.A Political Science(Honors)B.A Political Science(Honors)",
+        "AccentureAccenture14,133,282 followers14,133,282 followers",
+        "DeloitteDeloitte20,407,103 followers20,407,103 followers",
+        "Viestories MediaViestories Media",
+        "Ideaspring CapitalIdeaspring Capital",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,635 followers7,231,635 followers"
+      ]
+    },
+    {
+      "Name": "Varun Khattar",
+      "LinkedIn URL": "https://www.linkedin.com/in/khattarvarun",
+      "Past Companies": [
+        "Honda Cars India LtdHonda Cars India Ltd7 yrs 5 mos7 yrs 5 mos",
+        "Harvard Business ReviewHarvard Business Review14,561,882 followers14,561,882 followers",
+        "Stanford UniversityStanford University1,443,802 followers1,443,802 followers"
+      ]
     }
   ],
   "all_companies": [
@@ -918,10 +957,12 @@
     "AccentureAccenture14,133,218 followers14,133,218 followers",
     "AccentureAccenture14,133,219 followers14,133,219 followers",
     "AccentureAccenture14,133,229 followers14,133,229 followers",
+    "AccentureAccenture14,133,282 followers14,133,282 followers",
     "Account ManagerAccount ManagerApr 2024 - Jun 2024 · 3 mosApr 2024 to Jun 2024 · 3 mos",
     "AceMBA | AceCase",
     "Adani GroupAdani GroupUtilitiesUtilities2,732,877 followers2,732,877 followers",
     "AnalystAnalystJun 2022 - Oct 2023 · 1 yr 5 mosJun 2022 to Oct 2023 · 1 yr 5 mos",
+    "Angel InvestorAngel InvestorHooLivHooLivDec 2024 - Present · 1 yrDec 2024 to Present · 1 yr",
     "AnthropicAnthropicResearch ServicesResearch Services1,725,019 followers1,725,019 followers",
     "Asclepii",
     "Ashok Leyland",
@@ -937,6 +978,7 @@
     "BITSoM - BITS School of Management",
     "BITSoM - BITS School of ManagementBITSoM - BITS School of ManagementMBAMBA",
     "Bank of AmericaBank of America3,107,313 followers3,107,313 followers",
+    "Bimtek GroupBimtek Group",
     "Birla Estates",
     "BlackRockBlackRock3 yrs 5 mos3 yrs 5 mos",
     "Boston Consulting Group (BCG)Boston Consulting Group (BCG)",
@@ -981,6 +1023,8 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,597 followers7,231,597 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,599 followers7,231,599 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,606 followers7,231,606 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,629 followers7,231,629 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,635 followers7,231,635 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
@@ -1008,6 +1052,7 @@
     "DeloitteDeloitte20,406,961 followers20,406,961 followers",
     "DeloitteDeloitte20,406,968 followers20,406,968 followers",
     "DeloitteDeloitte20,406,983 followers20,406,983 followers",
+    "DeloitteDeloitte20,407,103 followers20,407,103 followers",
     "Deutsche BankDeutsche Bank3,133,612 followers3,133,612 followers",
     "DirectorDirectorSep 2019 - Sep 2023 · 4 yrs 1 moSep 2019 to Sep 2023 · 4 yrs 1 mo",
     "Domino's Pizza",
@@ -1060,6 +1105,8 @@
     "Haqdarshak",
     "Harvard Business ReviewHarvard Business Review",
     "Harvard Business ReviewHarvard Business Review14,561,736 followers14,561,736 followers",
+    "Harvard Business ReviewHarvard Business Review14,561,881 followers14,561,881 followers",
+    "Harvard Business ReviewHarvard Business Review14,561,882 followers14,561,882 followers",
     "Harvard Business SchoolHarvard Business School2,491,942 followers2,491,942 followers",
     "Harvard Business SchoolHarvard Business School2,492,160 followers2,492,160 followers",
     "Harvard Business SchoolHarvard Business SchoolDBA, TOMDBA, TOM2002 - 20072002 - 2007",
@@ -1069,6 +1116,7 @@
     "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,207 followers3,713,207 followers",
     "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,218 followers3,713,218 followers",
     "Hitachi VantaraHitachi Vantara",
+    "Honda Cars India LtdHonda Cars India Ltd7 yrs 5 mos7 yrs 5 mos",
     "IBMIBM18,964,616 followers18,964,616 followers",
     "IBMIBM18,964,621 followers18,964,621 followers",
     "IBMIBM18,964,624 followers18,964,624 followers",
@@ -1108,6 +1156,7 @@
     "KPMGKPMGAccountingAccounting5,080,644 followers5,080,644 followers",
     "KPMGKPMGAccountingAccounting5,081,569 followers5,081,569 followers",
     "Karolinska Institutet",
+    "KearneyKearney",
     "KearneyKearney638,796 followers638,796 followers",
     "Kimberly-Clark",
     "Koch",
@@ -1130,6 +1179,7 @@
     "McKinsey & CompanyMcKinsey & Company6,813,805 followers6,813,805 followers",
     "McKinsey & CompanyMcKinsey & Company6,813,814 followers6,813,814 followers",
     "McKinsey & CompanyMcKinsey & Company6,813,825 followers6,813,825 followers",
+    "McKinsey & CompanyMcKinsey & Company6,814,062 followers6,814,062 followers",
     "MicrosoftMicrosoft27,029,877 followers27,029,877 followers",
     "MicrosoftMicrosoft27,029,920 followers27,029,920 followers",
     "MicrosoftMicrosoft27,031,527 followers27,031,527 followers",
@@ -1181,6 +1231,7 @@
     "SiemensSiemens4 yrs 6 mos4 yrs 6 mos",
     "SiemensSiemens8,301,971 followers8,301,971 followers",
     "Somerset Indus Capital PartnersSomerset Indus Capital Partners3,795 followers3,795 followers",
+    "Stanford UniversityStanford University1,443,802 followers1,443,802 followers",
     "Startups LatamStartups Latam",
     "Strategy&Strategy&",
     "TED ConferencesTED Conferences",
@@ -1236,5 +1287,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 339
+  "companies_count": 351
 }

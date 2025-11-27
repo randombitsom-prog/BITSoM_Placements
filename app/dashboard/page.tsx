@@ -85,10 +85,6 @@ const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {
     const company = String(row['Company'] || row['company'] || '').trim();
     const ctc = normalizeNumber(row['CTC'] || row['ctc']);
 
-    if (!company) {
-      totalUnplaced += 1;
-    }
-
     if (!Number.isNaN(ctc)) {
       ctcValues.push(ctc);
     }
@@ -98,9 +94,16 @@ const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {
     else if (status.includes('campus')) campusPlaced += 1;
 
     if (status.includes('ppi')) totalPPIs += 1;
+
+    if (
+      !status ||
+      (!status.includes('ppo') && !status.includes('campus') && !status.includes('off'))
+    ) {
+      totalUnplaced += 1;
+    }
   });
 
-  const placedTotal = rows.filter((row) => String(row['Company'] || '').trim()).length;
+  const placedTotal = ppos + campusPlaced + offCampusPlaced;
 
   const highestCTC = ctcValues.length ? Math.max(...ctcValues) : DEFAULT_STATS.highestCTC;
   const lowestCTC = ctcValues.length ? Math.min(...ctcValues) : DEFAULT_STATS.lowestCTC;
