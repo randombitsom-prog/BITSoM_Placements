@@ -66,7 +66,7 @@ const parseGvizResponse = (text: string): SheetRow[] => {
       });
       return obj;
     })
-    .filter((row): row is SheetRow => Boolean(row));
+    .filter((row: SheetRow | null): row is SheetRow => Boolean(row));
 };
 
 const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {

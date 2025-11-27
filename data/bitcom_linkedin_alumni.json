@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T14:05:39.896345",
-  "total_profiles": 77,
+  "scraped_at": "2025-11-27T14:06:51.433555",
+  "total_profiles": 78,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -885,6 +885,14 @@
       "Name": "Languages",
       "LinkedIn URL": "https://www.linkedin.com/in/shramay/details/languages",
       "Past Companies": []
+    },
+    {
+      "Name": "Harry Stebbings",
+      "LinkedIn URL": "https://www.linkedin.com/in/harrystebbings",
+      "Past Companies": [
+        "IBMIBM18,966,206 followers18,966,206 followers",
+        "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,218 followers3,713,218 followers"
+      ]
     }
   ],
   "all_companies": [
@@ -1059,6 +1067,7 @@
     "Harvard Law School",
     "Head of OperationsHead of OperationsFeb 2023 - Oct 2023 · 9 mosFeb 2023 to Oct 2023 · 9 mos",
     "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,207 followers3,713,207 followers",
+    "Hewlett Packard EnterpriseHewlett Packard Enterprise3,713,218 followers3,713,218 followers",
     "Hitachi VantaraHitachi Vantara",
     "IBMIBM18,964,616 followers18,964,616 followers",
     "IBMIBM18,964,621 followers18,964,621 followers",
@@ -1067,6 +1076,7 @@
     "IBMIBM18,965,752 followers18,965,752 followers",
     "IBMIBM18,965,764 followers18,965,764 followers",
     "IBMIBM18,965,784 followers18,965,784 followers",
+    "IBMIBM18,966,206 followers18,966,206 followers",
     "ICICI BankICICI Bank3,806,289 followers3,806,289 followers",
     "IMS Learning Resources Pvt. Ltd.IMS Learning Resources Pvt. Ltd.19,984 followers19,984 followers",
     "INCAE Business SchoolINCAE Business School16 yrs 11 mos16 yrs 11 mosCosta RicaCosta Rica",
@@ -1226,5 +1236,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 337
+  "companies_count": 339
 }
