@@ -371,12 +371,12 @@ export default function ChatBot({ onExpandChange }: ChatBotProps) {
     <Card
       className={`flex flex-col bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl overflow-hidden transition-all duration-300 ${
         isExpanded
-          ? 'fixed inset-0 z-50 w-[80vw] max-w-[1600px] h-[80vh] rounded-3xl left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
+          ? 'fixed inset-0 z-50 w-[90vw] max-w-[1800px] h-[90vh] rounded-3xl left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'
           : 'h-[calc(100vh-120px)] sticky top-4 rounded-3xl'
       }`}
     >
-      <CardHeader className="border-b border-slate-700/50 bg-gradient-to-br from-orange-500 to-orange-700 rounded-t-3xl">
-        <div className="flex items-center gap-3 justify-between">
+      <CardHeader className="p-0 border-b border-slate-700/50">
+        <div className="bg-gradient-to-br from-orange-500 to-orange-700 rounded-t-3xl px-6 py-5 flex items-center gap-3 justify-between">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm shadow-sm">
               <Bot className="h-6 w-6 text-white" />

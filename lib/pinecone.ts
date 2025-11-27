@@ -37,6 +37,7 @@ export type PlacementNamespacesResult = {
     placementCompanies: string[];
     placementStatsContext: string;
     transcriptsContext: string;
+    linkedinProfilesContext: string;
 };
 
 export type PlacementListing = {
@@ -234,14 +235,64 @@ ${transcriptEntries.join('\n\n---\n\n')}
 </transcripts_results>`;
 }
 
+function isValidLinkedInProfile(metadata: Record<string, unknown>): boolean {
+    const name = String(metadata.name || '').trim().toLowerCase();
+    if (!name || name === 'unknown') return false;
+    if (['people you may know', 'you might like', 'endorsements'].some((noise) => name.includes(noise))) {
+        return false;
+    }
+
+    const url = String(metadata.linkedin_url || '').toLowerCase();
+    if (!url) return false;
+    // Ignore recommendation overlays which usually contain '/overlay/' in the URL
+    if (url.includes('/overlay/')) return false;
+
+    return true;
+}
+
+async function searchLinkedInProfilesNamespace(query: string): Promise<string> {
+    console.log('[VERCEL LOG] Searching linkedin_profiles namespace with query:', query);
+
+    const queryEmbedding = await generateEmbedding(query);
+    const results = await pineconeIndex.namespace('linkedin_profiles').query({
+        vector: queryEmbedding,
+        topK: 6,
+        includeMetadata: true,
+    });
+
+    const matches = (results?.matches || []).filter((match) => isValidLinkedInProfile(match.metadata || {})).slice(0, 3);
+
+    if (matches.length === 0) {
+        console.log('[VERCEL LOG] No valid LinkedIn matches found');
+        return '';
+    }
+
+    const profiles = matches.map((match, idx) => {
+        const metadata = match.metadata || {};
+        const name = String(metadata.name || 'Unknown');
+        const url = String(metadata.linkedin_url || 'N/A');
+        const companies = Array.isArray(metadata.past_companies) ? metadata.past_companies.filter(Boolean).join(', ') : '';
+        const companiesText = companies || 'Past companies not available';
+        return `# Profile ${idx + 1}
+Name: ${name}
+LinkedIn: ${url}
+Past companies: ${companiesText}`;
+    });
+
+    return `<linkedin_profiles_results>
+${profiles.join('\n\n')}
+</linkedin_profiles_results>`;
+}
+
 export async function searchPinecone(
     query: string,
 ): Promise<PlacementNamespacesResult> {
     console.log('[VERCEL LOG] Starting searchPinecone with query:', query);
-    const [placements, placementStats, transcripts] = await Promise.all([
+    const [placements, placementStats, transcripts, linkedinProfiles] = await Promise.all([
         searchPlacementsNamespace(query),
         searchPlacementStatsNamespace(query),
         searchTranscriptsNamespace(query),
+        searchLinkedInProfilesNamespace(query),
     ]);
 
     console.log('[VERCEL LOG] Initial search results:', {
@@ -249,6 +300,7 @@ export async function searchPinecone(
         placementsContextLength: placements.context.length,
         placementStatsContextLength: placementStats.length,
         transcriptsContextLength: transcripts.length,
+        linkedinProfilesLength: linkedinProfiles.length,
     });
 
     // If placements search returned no companies, try a broader search with "BITSoM placement companies"
@@ -265,6 +317,7 @@ export async function searchPinecone(
                 placementCompanies: broaderPlacements.companies,
                 placementStatsContext: placementStats,
                 transcriptsContext: transcripts,
+                linkedinProfilesContext: linkedinProfiles,
             };
         }
     }
@@ -274,6 +327,7 @@ export async function searchPinecone(
         placementCompanies: placements.companies,
         placementStatsContext: placementStats,
         transcriptsContext: transcripts,
+        linkedinProfilesContext: linkedinProfiles,
     };
 
     console.log('[VERCEL LOG] Final searchPinecone result:', {
@@ -282,6 +336,7 @@ export async function searchPinecone(
         placementCompanies: finalResult.placementCompanies,
         placementStatsContextLength: finalResult.placementStatsContext.length,
         transcriptsContextLength: finalResult.transcriptsContext.length,
+        linkedinProfilesContextLength: finalResult.linkedinProfilesContext.length,
     });
 
     return finalResult;

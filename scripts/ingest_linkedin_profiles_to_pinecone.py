@@ -26,10 +26,11 @@ from openai import OpenAI
 from pinecone import Pinecone
 from tqdm import tqdm
 
-DATA_PATH = Path("/Users/sahil/Desktop/BITSoM_Placements/data/bitcom_linkedin_alumni.json")
+DATA_PATH = Path("sample_data/bitcom_linkedin_alumni.json")
 PINECONE_INDEX = "ipcs"
 NAMESPACE = "linkedin_profiles"
-EMBED_MODEL = "text-embedding-3-small"
+# Index dimension is 3072 (see Pinecone screenshot), so use the matching embedding model.
+EMBED_MODEL = "text-embedding-3-large"
 BATCH_SIZE = 50
 
 MONTH_PATTERN = r"(?i)\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b.*"
@@ -105,7 +106,7 @@ def make_document(record: Dict, companies: List[str]) -> str:
     url = record.get("LinkedIn URL", "N/A")
     companies_text = ", ".join(companies) if companies else "No verified past companies"
     return (
-        f"{name} is a BITSoM MBA community member.\n"
+        f"{name} is a BITSoM MBA Alumni.\n"
         f"LinkedIn profile: {url}.\n"
         f"Verified past companies: {companies_text}."
     )
@@ -117,18 +118,10 @@ def load_alumni(path: Path) -> List[Dict]:
     return data.get("alumni", [])
 
 
-def ensure_env() -> None:
-    load_dotenv()
-    if not os.getenv("OPENAI_API_KEY"):
-        raise RuntimeError("OPENAI_API_KEY is missing.")
-    if not os.getenv("PINECONE_API_KEY"):
-        raise RuntimeError("PINECONE_API_KEY is missing.")
-
 
 def main():
-    ensure_env()
-    client = OpenAI()
-    pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    pc = Pinecone(api_key=PINECONE_API_KEY)
     index = pc.Index(PINECONE_INDEX)
 
     records = load_alumni(DATA_PATH)
