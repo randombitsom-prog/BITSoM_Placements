@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T11:37:53.275574",
-  "total_profiles": 34,
+  "scraped_at": "2025-11-27T11:41:38.739223",
+  "total_profiles": 36,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -440,6 +440,24 @@
         "384 connections follow this page",
         "CiscoCiscoSoftware DevelopmentSoftware Development7,231,331 followers7,231,331 followers"
       ]
+    },
+    {
+      "Name": "Lakshay Khera",
+      "LinkedIn URL": "https://www.linkedin.com/in/lakshay-khera",
+      "Past Companies": [
+        "AccentureAccenture14,132,740 followers14,132,740 followers",
+        "DeloitteDeloitte20,405,887 followers20,405,887 followers",
+        "Samagra | Transforming GovernanceSamagra | Transforming Governance",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,334 followers7,231,334 followers",
+        "PhonePePhonePeSoftware DevelopmentSoftware Development1,384,126 followers1,384,126 followers"
+      ]
+    },
+    {
+      "Name": "Dr. Tarinee Puri",
+      "LinkedIn URL": "https://www.linkedin.com/in/tarineepuri",
+      "Past Companies": [
+        "Manipal College of Dental Sciences, Mangalore logo"
+      ]
     }
   ],
   "all_companies": [
@@ -457,6 +475,7 @@
     "AccentureAccenture14,132,712 followers14,132,712 followers",
     "AccentureAccenture14,132,714 followers14,132,714 followers",
     "AccentureAccenture14,132,718 followers14,132,718 followers",
+    "AccentureAccenture14,132,740 followers14,132,740 followers",
     "AceMBA | AceCase",
     "Adani GroupAdani GroupUtilitiesUtilities2,732,877 followers2,732,877 followers",
     "AnalystAnalystJun 2022 - Oct 2023 · 1 yr 5 mosJun 2022 to Oct 2023 · 1 yr 5 mos",
@@ -493,6 +512,7 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,322 followers7,231,322 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,323 followers7,231,323 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,331 followers7,231,331 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,334 followers7,231,334 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
@@ -506,6 +526,7 @@
     "DeloitteDeloitte20,403,597 followers20,403,597 followers",
     "DeloitteDeloitte20,405,772 followers20,405,772 followers",
     "DeloitteDeloitte20,405,877 followers20,405,877 followers",
+    "DeloitteDeloitte20,405,887 followers20,405,887 followers",
     "Deutsche BankDeutsche Bank3,133,612 followers3,133,612 followers",
     "DirectorDirectorSep 2019 - Sep 2023 · 4 yrs 1 moSep 2019 to Sep 2023 · 4 yrs 1 mo",
     "Domino's Pizza",
@@ -573,6 +594,7 @@
     "London Business SchoolLondon Business SchoolSep 2022 - Sep 2022Sep 2022 - Sep 2022",
     "LoopLoop",
     "MBZUAI (Mohamed bin Zayed University of Artificial Intelligence)",
+    "Manipal College of Dental Sciences, Mangalore logo",
     "Mata Sundri College For Women",
     "McKinsey & CompanyMcKinsey & Company6,813,218 followers6,813,218 followers",
     "McKinsey & CompanyMcKinsey & Company6,813,276 followers6,813,276 followers",
@@ -593,12 +615,14 @@
     "PepsiCoPepsiCoFull-time · 1 yr 11 mosFull-time · 1 yr 11 mos",
     "PfizerPfizer6,676,440 followers6,676,440 followers",
     "PhilipsPhilips2,804,405 followers2,804,405 followers",
+    "PhonePePhonePeSoftware DevelopmentSoftware Development1,384,126 followers1,384,126 followers",
     "Pidilite Industries Limited",
     "Prabhat Roadways logo",
     "Public SpeakerPublic SpeakerApr 2018 - Sep 2019 · 1 yr 6 mosApr 2018 to Sep 2019 · 1 yr 6 mos",
     "PwCPwC7,576,123 followers7,576,123 followers",
     "RazorpayRazorpay",
     "SLB",
+    "Samagra | Transforming GovernanceSamagra | Transforming Governance",
     "Scead Foundation - India logo",
     "Secretary GeneralSecretary GeneralJul 2016 - Jun 2017 · 1 yrJul 2016 to Jun 2017 · 1 yr",
     "SecretarySecretaryJan 2019 - Jun 2019 · 6 mosJan 2019 to Jun 2019 · 6 mos",
@@ -648,5 +672,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 204
+  "companies_count": 210
 }
