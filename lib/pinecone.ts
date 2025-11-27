@@ -45,8 +45,6 @@ export type PlacementListing = {
     role: string;
     location?: string;
     jobPackage?: string;
-    clusterDay?: string;
-    functionSector?: string;
     publishDate?: string;
     deadline?: string;
     sourceName?: string;
@@ -315,12 +313,6 @@ function parsePlacementText(text: string) {
                 break;
             case key.includes('compensation') || key.includes('ctc') || key.includes('job_package'):
                 entry.jobPackage = value;
-                break;
-            case key.includes('cluster/day'):
-                entry.clusterDay = value;
-                break;
-            case key.includes('function/sector'):
-                entry.functionSector = value;
                 break;
             case key.includes('publish date'):
                 entry.publishDate = value;

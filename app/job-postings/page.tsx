@@ -138,9 +138,7 @@ export default function JobPostingsPage() {
                       <p className="text-sm text-slate-600">{listing.role || "Role TBD"}</p>
                     </div>
                     {listing.jobPackage && (
-                      <span className="inline-flex items-center bg-orange-500 text-white text-xs md:text-sm rounded-full px-3 py-1 max-w-full break-words whitespace-normal">
-                        {listing.jobPackage}
-                      </span>
+                      <></>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-slate-500">
@@ -154,11 +152,6 @@ export default function JobPostingsPage() {
                       {listing.isOpen ? "Open" : "Closed"}
                     </Badge>
                     {listing.location && <Badge variant="outline">{listing.location}</Badge>}
-                    {listing.functionSector && (
-                      <Badge variant="outline" className="text-slate-800 border-slate-400">
-                        {listing.functionSector}
-                      </Badge>
-                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="text-sm text-slate-300 space-y-3 flex-1">

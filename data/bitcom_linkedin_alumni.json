@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T15:28:48.376565",
-  "total_profiles": 155,
+  "scraped_at": "2025-11-27T15:31:35.956729",
+  "total_profiles": 158,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -1628,6 +1628,30 @@
       "Name": "Recommendations",
       "LinkedIn URL": "https://www.linkedin.com/in/shams-aalam-96a15049/details/recommendations",
       "Past Companies": []
+    },
+    {
+      "Name": "Honors & awards",
+      "LinkedIn URL": "https://www.linkedin.com/in/shams-aalam-96a15049/details/honors",
+      "Past Companies": []
+    },
+    {
+      "Name": "Languages",
+      "LinkedIn URL": "https://www.linkedin.com/in/shams-aalam-96a15049/details/languages",
+      "Past Companies": []
+    },
+    {
+      "Name": "Sumit Agarwal",
+      "LinkedIn URL": "https://www.linkedin.com/in/asksumit",
+      "Past Companies": [
+        "India Autism Center",
+        "Confederation of Indian Industry",
+        "CII Eastern Region",
+        "Swiggy",
+        "IBMIBM18,966,474 followers18,966,474 followers",
+        "AccentureAccenture14,133,586 followers14,133,586 followers",
+        "UN CC:LearnUN CC:Learn",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,790 followers7,231,790 followers"
+      ]
     }
   ],
   "all_companies": [
@@ -1667,6 +1691,7 @@
     "AccentureAccenture14,133,324 followers14,133,324 followers",
     "AccentureAccenture14,133,352 followers14,133,352 followers",
     "AccentureAccenture14,133,475 followers14,133,475 followers",
+    "AccentureAccenture14,133,586 followers14,133,586 followers",
     "Account ManagerAccount ManagerApr 2024 - Jun 2024 · 3 mosApr 2024 to Jun 2024 · 3 mos",
     "AceMBA | AceCase",
     "Adani GroupAdani GroupUtilitiesUtilities2,732,877 followers2,732,877 followers",
@@ -1716,6 +1741,7 @@
     "Broadway",
     "Browserbase",
     "CBM India",
+    "CII Eastern Region",
     "COSGrid Networks",
     "CRM InternCRM InternInternshipInternshipFeb 2022 - Jul 2022 · 6 mosFeb 2022 to Jul 2022 · 6 mos",
     "CRMCRMFull-timeFull-timeAug 2022 - Jul 2023 · 1 yrAug 2022 to Jul 2023 · 1 yr",
@@ -1783,11 +1809,13 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,738 followers7,231,738 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,744 followers7,231,744 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,769 followers7,231,769 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,790 followers7,231,790 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
     "Colgate-Palmolive (India) Ltd",
     "ColliersColliers1,098,161 followers1,098,161 followers",
+    "Confederation of Indian Industry",
     "Content WriterContent WriterSep 2022 - Feb 2023 · 6 mosSep 2022 to Feb 2023 · 6 mos",
     "Cornell University",
     "CourseCourse",
@@ -1929,12 +1957,14 @@
     "IBMIBM18,966,380 followers18,966,380 followers",
     "IBMIBM18,966,388 followers18,966,388 followers",
     "IBMIBM18,966,399 followers18,966,399 followers",
+    "IBMIBM18,966,474 followers18,966,474 followers",
     "ICICI BankICICI Bank3,806,289 followers3,806,289 followers",
     "IMS Learning Resources Pvt. Ltd.IMS Learning Resources Pvt. Ltd.19,984 followers19,984 followers",
     "INCAE Business SchoolINCAE Business School16 yrs 11 mos16 yrs 11 mosCosta RicaCosta Rica",
     "Ideaspring CapitalIdeaspring Capital",
     "Inc42 MediaInc42 Media",
     "Independent ContractorIndependent ContractorFeb 2022 - Sep 2022 · 8 mosFeb 2022 to Sep 2022 · 8 mos",
+    "India Autism Center",
     "Indian Institute of Management Ahmedabad",
     "Indian Red Cross Society (IRCS) logo",
     "Indian School of BusinessIndian School of Business536,180 followers536,180 followers",
@@ -2113,6 +2143,7 @@
     "State Election Commission, Bihar",
     "Stealth StartupStealth Startup1,418,254 followers1,418,254 followers",
     "Strategy&Strategy&",
+    "Swiggy",
     "TED ConferencesTED Conferences",
     "TEDxSiddagangaTEDxSiddaganga3 yrs3 yrs",
     "THE INDUSTRY FOUR®THE INDUSTRY FOUR®",
@@ -2138,6 +2169,7 @@
     "TresVistaTresVistaFull-time · 3 yrs 1 moFull-time · 3 yrs 1 mo",
     "Trimble Inc.Trimble Inc.Full-time · 3 yrs 10 mosFull-time · 3 yrs 10 mosHybridHybrid",
     "True Positive Inc.True Positive Inc.6 yrs 11 mos6 yrs 11 mos",
+    "UN CC:LearnUN CC:Learn",
     "UNC Kenan-Flagler Business School",
     "UNC Kenan-Flagler Business SchoolUNC Kenan-Flagler Business School14 yrs 5 mos14 yrs 5 mos",
     "UNC Kenan-Flagler Business SchoolUNC Kenan-Flagler Business School71,807 followers71,807 followers",
@@ -2192,5 +2224,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 560
+  "companies_count": 568
 }
