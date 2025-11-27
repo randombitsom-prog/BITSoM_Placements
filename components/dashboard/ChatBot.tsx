@@ -23,13 +23,14 @@ const WELCOME_MESSAGE: Message = {
 };
 
 export default function ChatBot() {
-  const { messages, sendMessage, isLoading } = useChat({
+  const { messages, sendMessage } = useChat({
     api: '/api/chat',
   });
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [localMessages, setLocalMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -79,16 +80,30 @@ export default function ChatBot() {
 
   const handleQuickAction = (action: string) => {
     setInput(action);
+    setIsLoading(true);
     sendMessage({ content: action });
   };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
+      setIsLoading(true);
       sendMessage({ content: input.trim() });
       setInput('');
     }
   };
+
+  // Track loading state based on messages
+  useEffect(() => {
+    // If last message is from user, we're waiting for assistant response
+    const lastMessage = messages[messages.length - 1];
+    if (lastMessage && lastMessage.role === 'user') {
+      setIsLoading(true);
+    } else {
+      // Assistant has responded or no messages, not loading
+      setIsLoading(false);
+    }
+  }, [messages]);
 
   return (
     <Card className="h-[calc(100vh-120px)] flex flex-col sticky top-4 bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl">
