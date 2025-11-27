@@ -184,8 +184,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
       {/* Header */}
-      <header className="bg-white/80 border-b border-orange-200 shadow-lg backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-[1800px] mx-auto px-6 py-4">
+      <header className="bg-white/80 border-b border-orange-200 shadow-lg backdrop-blur-sm sticky top-0 z-30">
+        <div className="max-w-[1400px] mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-white rounded-lg shadow-md">
               <Image 
@@ -216,7 +216,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="max-w-[1800px] mx-auto p-6 flex gap-6">
+      <div className="max-w-[1400px] mx-auto p-6 flex flex-col xl:flex-row gap-6">
         {/* Main Content - 2/3 width */}
         <div className="flex-1 space-y-6">
           {/* Key Stats Cards */}

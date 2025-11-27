@@ -363,7 +363,7 @@ export default function ChatBot() {
     <Card
       className={`flex flex-col bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700/50 shadow-xl overflow-hidden transition-all ${
         isExpanded
-          ? 'fixed inset-0 z-50 max-w-4xl mx-auto my-6 rounded-3xl h-[80vh]'
+          ? 'fixed inset-0 z-50 max-w-5xl mx-auto my-6 rounded-3xl h-[80vh]'
           : 'h-[calc(100vh-120px)] sticky top-4 rounded-3xl'
       }`}
     >
