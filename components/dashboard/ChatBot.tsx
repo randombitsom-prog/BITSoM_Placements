@@ -99,7 +99,14 @@ export default function ChatBot() {
       });
 
       if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Unknown error');
+        console.error('API Error:', response.status, errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Check if response is a timeout or error
+      if (response.status === 504 || response.status === 408) {
+        throw new Error('Request timeout - the response took too long. Please try again.');
       }
 
       const reader = response.body?.getReader();
@@ -128,7 +135,7 @@ export default function ChatBot() {
             if (line.startsWith('0:')) {
               const data = JSON.parse(line.slice(2));
               
-              // Handle text-delta events
+              // Handle text-delta events (streaming text chunks)
               if (data.type === 'text-delta' && data.delta) {
                 if (!hasReceivedData) {
                   accumulatedText = '';
@@ -143,7 +150,7 @@ export default function ChatBot() {
                   )
                 );
               }
-              // Handle text-start (reset accumulated text)
+              // Handle text-start (reset accumulated text when new text starts)
               else if (data.type === 'text-start') {
                 accumulatedText = '';
                 hasReceivedData = true;
@@ -151,6 +158,18 @@ export default function ChatBot() {
                   prev.map(msg =>
                     msg.id === botMessageId
                       ? { ...msg, text: '' }
+                      : msg
+                  )
+                );
+              }
+              // Handle text (complete text block)
+              else if (data.type === 'text' && data.text) {
+                accumulatedText = data.text;
+                hasReceivedData = true;
+                setMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === botMessageId
+                      ? { ...msg, text: accumulatedText }
                       : msg
                   )
                 );
@@ -176,9 +195,13 @@ export default function ChatBot() {
                   }
                 }
               }
+              // Handle finish event
+              else if (data.type === 'finish') {
+                // Stream is complete
+              }
             }
           } catch (e) {
-            // Skip invalid JSON lines
+            // Skip invalid JSON lines - might be partial data
           }
         }
       }
