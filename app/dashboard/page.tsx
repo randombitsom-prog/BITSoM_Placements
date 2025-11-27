@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import ChatBot from '@/components/dashboard/ChatBot';
 import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
@@ -145,6 +146,7 @@ export default function Dashboard() {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const [showReleaseNotes, setShowReleaseNotes] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -184,6 +186,47 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+      {showReleaseNotes && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-orange-200">
+            <div className="p-6 space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-orange-500 font-semibold">
+                  Release v1
+                </p>
+                <h2 className="text-2xl font-bold text-slate-900 mt-1">
+                  What’s new in PlaceBot
+                </h2>
+              </div>
+              <ol className="space-y-3 text-slate-700 list-decimal list-inside">
+                <li>
+                  Live placement dashboard for the 2026 batch with real-time stats on PPOs, offers, and CTC ranges.
+                </li>
+                <li>
+                  Job Postings Explorer listing all active and closed opportunities with search, filters, and full role details.
+                </li>
+                <li>
+                  PlaceBot AI Copilot trained on past interview transcripts, current batch placement data, and alumni career paths.
+                </li>
+                <li>
+                  Context-aware answering powered by Pinecone RAG and OpenAI, with citations and web-search fallback.
+                </li>
+                <li>
+                  Integrated UI with a collapsible chatbot panel and seamless navigation between stats, job postings, and assistance.
+                </li>
+              </ol>
+              <div className="flex justify-end">
+                <Button
+                  onClick={() => setShowReleaseNotes(false)}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700"
+                >
+                  Okay
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <header className="bg-white/80 border-b border-orange-200 shadow-lg backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-6 py-4">
