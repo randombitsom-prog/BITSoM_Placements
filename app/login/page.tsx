@@ -18,9 +18,9 @@ export default function LoginPage() {
     e.preventDefault();
     // Simple validation - in production, this would authenticate with a backend
     if (email && password) {
-      // Store login state (in production, use proper auth)
       if (typeof window !== 'undefined') {
-        localStorage.setItem('isAuthenticated', 'true');
+        sessionStorage.setItem('isAuthenticated', 'true');
+        localStorage.removeItem('isAuthenticated');
       }
       router.push('/dashboard');
     }
@@ -39,8 +39,7 @@ export default function LoginPage() {
               For demo/test purposes Microsoft login has been disabled. To login use:
             </p>
             <div className="bg-slate-800/70 border border-slate-700 rounded-xl p-4 text-sm space-y-2">
-              <p><span className="font-semibold text-orange-200">Email:</span> any valid email id</p>
-              <p><span className="font-semibold text-orange-200">Password:</span> anything you like</p>
+              <p><span className="font-semibold text-orange-200">This Portal and PlaceBot is created and managed by BITSoM Students.</span></p>
             </div>
             <Button
               onClick={() => setShowModal(false)}

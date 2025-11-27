@@ -7,14 +7,20 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect immediately without showing content
-    if (typeof window !== 'undefined') {
-      const isAuthenticated = localStorage.getItem('isAuthenticated');
-      if (isAuthenticated) {
-        router.replace('/dashboard');
-      } else {
-        router.replace('/login');
-      }
+    if (typeof window === 'undefined') return;
+
+    // Migrate legacy auth flag from localStorage to sessionStorage
+    const legacyAuth = localStorage.getItem('isAuthenticated');
+    if (legacyAuth) {
+      sessionStorage.setItem('isAuthenticated', legacyAuth);
+      localStorage.removeItem('isAuthenticated');
+    }
+
+    const isAuthenticated = sessionStorage.getItem('isAuthenticated');
+    if (isAuthenticated) {
+      router.replace('/dashboard');
+    } else {
+      router.replace('/login');
     }
   }, [router]);
 

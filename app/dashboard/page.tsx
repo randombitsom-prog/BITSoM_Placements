@@ -152,7 +152,13 @@ export default function Dashboard() {
   useEffect(() => {
     // Check authentication
     if (typeof window !== 'undefined') {
-      const isAuthenticated = localStorage.getItem('isAuthenticated');
+      const legacyAuth = localStorage.getItem('isAuthenticated');
+      if (legacyAuth) {
+        sessionStorage.setItem('isAuthenticated', legacyAuth);
+        localStorage.removeItem('isAuthenticated');
+      }
+
+      const isAuthenticated = sessionStorage.getItem('isAuthenticated');
       if (!isAuthenticated) {
         router.push('/login');
       }
