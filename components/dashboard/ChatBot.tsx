@@ -23,14 +23,16 @@ const WELCOME_MESSAGE: Message = {
 
 export default function ChatBot() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTop = viewport.scrollHeight;
+      }
     }
   }, [messages]);
 
@@ -409,7 +411,6 @@ export default function ChatBot() {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
           </div>
         </ScrollArea>
         <div className="p-4 border-t border-slate-700/50 bg-slate-900/50">

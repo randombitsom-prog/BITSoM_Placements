@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T12:02:47.369891",
-  "total_profiles": 53,
+  "scraped_at": "2025-11-27T12:04:23.444057",
+  "total_profiles": 54,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -667,6 +667,17 @@
         "J.P. MorganJ.P. Morgan",
         "The Trade AcademyThe Trade Academy"
       ]
+    },
+    {
+      "Name": "Shehzala -",
+      "LinkedIn URL": "https://www.linkedin.com/in/shehzala",
+      "Past Companies": [
+        "The Cañizares Center for Emerging Markets -EMC²",
+        "BITSoM - BITS School of Management",
+        "AtosAtos2,493,654 followers2,493,654 followers",
+        "GoogleGoogle39,770,098 followers39,770,098 followers",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,385 followers7,231,385 followers"
+      ]
     }
   ],
   "all_companies": [
@@ -695,6 +706,7 @@
     "Ashok Leyland",
     "Assistant AnalystAssistant AnalystNov 2022 - May 2024 · 1 yr 7 mosNov 2022 to May 2024 · 1 yr 7 mos",
     "AssociateAssociateSep 2023 - Nov 2024 · 1 yr 3 mosSep 2023 to Nov 2024 · 1 yr 3 mosOn-siteOn-site",
+    "AtosAtos2,493,654 followers2,493,654 followers",
     "Audit Assistant 1Audit Assistant 1Sep 2023 - May 2024 · 9 mosSep 2023 to May 2024 · 9 mos",
     "Audit Assistant 2+Audit Assistant 2+Jun 2024 - Oct 2024 · 5 mosJun 2024 to Oct 2024 · 5 mos",
     "Aureolis VenturesAureolis Ventures",
@@ -738,6 +750,7 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,370 followers7,231,370 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,371 followers7,231,371 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,382 followers7,231,382 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,385 followers7,231,385 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
@@ -798,6 +811,7 @@
     "Google",
     "GoogleGoogle",
     "GoogleGoogle39,769,922 followers39,769,922 followers",
+    "GoogleGoogle39,770,098 followers39,770,098 followers",
     "GreyGrey1 yr 2 mos1 yr 2 mos",
     "GreyGreyFull-time · 1 yr 7 mosFull-time · 1 yr 7 mosHybridHybrid",
     "HDFC BankHDFC BankBankingBanking3,456,966 followers3,456,966 followers",
@@ -964,5 +978,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 293
+  "companies_count": 296
 }
