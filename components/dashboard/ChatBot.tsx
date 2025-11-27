@@ -109,31 +109,65 @@ export default function ChatBot() {
         throw new Error('Request timeout - the response took too long. Please try again.');
       }
 
+      // Check content type to determine how to parse
+      const contentType = response.headers.get('content-type') || '';
+      const isStreaming = contentType.includes('text/event-stream') || contentType.includes('text/plain');
+
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let accumulatedText = '';
       let buffer = '';
       let hasReceivedData = false;
+      let eventCount = 0;
 
       if (!reader) {
         throw new Error('No response body');
       }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
+          const chunk = decoder.decode(value, { stream: true });
+          buffer += chunk;
           
-          try {
-            // UI message stream format: lines start with "0:" followed by JSON
-            if (line.startsWith('0:')) {
-              const data = JSON.parse(line.slice(2));
+          // Process complete lines
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            
+            // Log first few lines to debug
+            if (eventCount < 5) {
+              console.log('Stream line:', line.substring(0, 200));
+            }
+            
+            try {
+              // UI message stream format: lines start with "0:" followed by JSON
+              let data: any = null;
+              let jsonStr = '';
+              
+              if (line.startsWith('0:')) {
+                jsonStr = line.slice(2);
+              } else if (line.startsWith('data: ')) {
+                // SSE format
+                jsonStr = line.slice(6);
+              } else if (line.startsWith('{')) {
+                // Direct JSON
+                jsonStr = line;
+              } else {
+                continue;
+              }
+
+              data = JSON.parse(jsonStr);
+              eventCount++;
+              
+              // Log first few events to debug
+              if (eventCount <= 5) {
+                console.log('Stream event:', data.type, data);
+              }
               
               // Handle text-delta events (streaming text chunks)
               if (data.type === 'text-delta' && data.delta) {
@@ -199,10 +233,48 @@ export default function ChatBot() {
               else if (data.type === 'finish') {
                 // Stream is complete
               }
+              // Handle start event
+              else if (data.type === 'start') {
+                // Stream started
+              }
+            } catch (e) {
+              // Skip invalid JSON lines - might be partial data
+              // Only log if it looks like it might be important
+              if (line.length > 10 && (line.includes('text') || line.includes('delta') || line.includes('message'))) {
+                console.log('Failed to parse line:', line.substring(0, 200));
+              }
+            }
+          }
+        }
+
+        // Process any remaining buffer
+        if (buffer.trim()) {
+          try {
+            let jsonStr = buffer.trim();
+            if (jsonStr.startsWith('0:')) {
+              jsonStr = jsonStr.slice(2);
+            } else if (jsonStr.startsWith('data: ')) {
+              jsonStr = jsonStr.slice(6);
+            }
+            const data = JSON.parse(jsonStr);
+            if (data.type === 'text-delta' && data.delta) {
+              if (!hasReceivedData) {
+                accumulatedText = '';
+                hasReceivedData = true;
+              }
+              accumulatedText += data.delta;
             }
           } catch (e) {
-            // Skip invalid JSON lines - might be partial data
+            // Ignore buffer parse errors
           }
+        }
+
+        console.log(`Stream complete. Events: ${eventCount}, Has data: ${hasReceivedData}, Text length: ${accumulatedText.length}`);
+      } catch (streamError: any) {
+        console.error('Stream reading error:', streamError);
+        // If stream fails, try to get response as text
+        if (!hasReceivedData) {
+          throw new Error('Failed to read stream response');
         }
       }
 
@@ -222,7 +294,7 @@ export default function ChatBot() {
         }
       }
 
-      // Final update
+      // Final update - ensure we have the complete text
       if (accumulatedText) {
         setMessages(prev =>
           prev.map(msg =>
@@ -232,13 +304,18 @@ export default function ChatBot() {
           )
         );
       } else if (!hasReceivedData) {
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === botMessageId
-              ? { ...msg, text: 'No response received. Please try again.' }
-              : msg
-          )
-        );
+        // If we got events but no text, the stream might have completed without text-delta events
+        // Check if we have any text in the final message
+        const finalMessage = messages.find(msg => msg.id === botMessageId);
+        if (!finalMessage || !finalMessage.text || finalMessage.text === 'Fetching latest data...') {
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === botMessageId
+                ? { ...msg, text: 'No response received. The request may have timed out. Please try again.' }
+                : msg
+            )
+          );
+        }
       }
     } catch (error: any) {
       console.error('Error sending message:', error);
