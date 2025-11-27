@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T14:33:28.084299",
-  "total_profiles": 97,
+  "scraped_at": "2025-11-27T14:36:05.348860",
+  "total_profiles": 99,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -1123,6 +1123,22 @@
       "Past Companies": [
         "Sophia Girls College logo"
       ]
+    },
+    {
+      "Name": "Priti’s top skills",
+      "LinkedIn URL": "https://www.linkedin.com/in/pritisaldanha/overlay/top-skills-details",
+      "Past Companies": [
+        "Sophia Girls College logo",
+        "IBMIBM18,966,291 followers18,966,291 followers",
+        "OracleOracle10,927,831 followers10,927,831 followers",
+        "BoostaBoosta",
+        "CiscoCiscoSoftware DevelopmentSoftware Development7,231,680 followers7,231,680 followers"
+      ]
+    },
+    {
+      "Name": "Priti Saldanha",
+      "LinkedIn URL": "https://www.linkedin.com/in/pritisaldanha/opportunities/services/request-proposal",
+      "Past Companies": []
     }
   ],
   "all_companies": [
@@ -1244,6 +1260,7 @@
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,653 followers7,231,653 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,654 followers7,231,654 followers",
     "CiscoCiscoSoftware DevelopmentSoftware Development7,231,658 followers7,231,658 followers",
+    "CiscoCiscoSoftware DevelopmentSoftware Development7,231,680 followers7,231,680 followers",
     "Coca-Cola India",
     "Cognida.ai",
     "CognizantCognizant",
@@ -1361,6 +1378,7 @@
     "IBMIBM18,965,784 followers18,965,784 followers",
     "IBMIBM18,966,206 followers18,966,206 followers",
     "IBMIBM18,966,278 followers18,966,278 followers",
+    "IBMIBM18,966,291 followers18,966,291 followers",
     "ICICI BankICICI Bank3,806,289 followers3,806,289 followers",
     "IMS Learning Resources Pvt. Ltd.IMS Learning Resources Pvt. Ltd.19,984 followers19,984 followers",
     "INCAE Business SchoolINCAE Business School16 yrs 11 mos16 yrs 11 mosCosta RicaCosta Rica",
@@ -1452,6 +1470,7 @@
     "OracleOracle10,927,520 followers10,927,520 followers",
     "OracleOracle10,927,796 followers10,927,796 followers",
     "OracleOracle10,927,822 followers10,927,822 followers",
+    "OracleOracle10,927,831 followers10,927,831 followers",
     "PVR LimitedPVR Limited153,418 followers153,418 followers",
     "Peak XV PartnersPeak XV Partners",
     "People Trust",
@@ -1561,5 +1580,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 434
+  "companies_count": 437
 }
