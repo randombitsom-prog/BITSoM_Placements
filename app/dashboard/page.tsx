@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import ChatBot from '@/components/dashboard/ChatBot';
-import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX } from 'lucide-react';
+import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX, ArrowUpRight } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 type PlacementStats = {
   ppos: number;
@@ -199,14 +200,18 @@ export default function Dashboard() {
               <h1 className="text-2xl bg-gradient-to-r from-slate-800 to-orange-700 bg-clip-text text-transparent">
                 BITSoM Placement Dashboard
               </h1>
-              <p className="text-sm text-slate-600">Real-time placement statistics and career opportunities</p>
+              <p className="text-sm text-slate-600">
+                Real-time placement statistics and career opportunities
+              </p>
+              <p className="text-xs text-slate-500 mt-1">Batch of 2026</p>
             </div>
-            <div className="flex items-center gap-6 text-sm">
-              <div className="text-center">
-                <div className="text-orange-600">Academic Year</div>
-                <div className="text-slate-800">2024-25</div>
-              </div>
-            </div>
+            <Link
+              href="/job-postings"
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/60 transition"
+            >
+              Job Postings
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
           </div>
         </div>
       </header>

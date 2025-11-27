@@ -1,5 +1,6 @@
 import { Pinecone } from '@pinecone-database/pinecone';
 import OpenAI from 'openai';
+import { randomUUID } from 'crypto';
 import { PINECONE_TOP_K } from '@/config';
 import { searchResultsToChunks, getSourcesFromChunks, getContextFromSources } from '@/lib/sources';
 import { PINECONE_INDEX_NAME } from '@/config';
@@ -36,6 +37,22 @@ export type PlacementNamespacesResult = {
     placementCompanies: string[];
     placementStatsContext: string;
     transcriptsContext: string;
+};
+
+export type PlacementListing = {
+    id: string;
+    company: string;
+    role: string;
+    location?: string;
+    jobPackage?: string;
+    clusterDay?: string;
+    functionSector?: string;
+    publishDate?: string;
+    deadline?: string;
+    sourceName?: string;
+    sourceUrl?: string;
+    description?: string;
+    isOpen?: boolean;
 };
 
 async function searchPlacementsNamespace(query: string): Promise<{ context: string; companies: string[] }> {
@@ -270,4 +287,83 @@ export async function searchPinecone(
     });
 
     return finalResult;
+}
+
+function parsePlacementText(text: string) {
+    const entry: PlacementListing = {
+        id: '',
+        company: '',
+        role: '',
+    };
+
+    text.split('\n').forEach(line => {
+        const normalized = line.trim();
+        if (!normalized) return;
+        const [rawKey, ...rest] = normalized.split(':');
+        const key = rawKey?.toLowerCase() || '';
+        const value = rest.join(':').trim();
+
+        switch (true) {
+            case key.includes('company'):
+                entry.company = value;
+                break;
+            case key.includes('role') || key.includes('job title'):
+                entry.role = value;
+                break;
+            case key.includes('location'):
+                entry.location = value;
+                break;
+            case key.includes('compensation') || key.includes('ctc') || key.includes('job_package'):
+                entry.jobPackage = value;
+                break;
+            case key.includes('cluster/day'):
+                entry.clusterDay = value;
+                break;
+            case key.includes('function/sector'):
+                entry.functionSector = value;
+                break;
+            case key.includes('publish date'):
+                entry.publishDate = value;
+                break;
+            case key.includes('deadline'):
+                entry.deadline = value;
+                break;
+            default:
+                break;
+        }
+    });
+
+    entry.description = text;
+    return entry;
+}
+
+export async function fetchPlacementListings(limit = 100): Promise<PlacementListing[]> {
+    const now = new Date();
+    const queryEmbedding = await generateEmbedding('List of BITSoM placement job postings');
+    const results = await pineconeIndex.namespace('placements').query({
+        vector: queryEmbedding,
+        topK: limit,
+        includeMetadata: true,
+    });
+
+    const matches = results?.matches || [];
+    const parsed = matches.map((match) => {
+        const metadata = match.metadata || {};
+        const text = String(metadata.text || '');
+        const parsed = parsePlacementText(text);
+        const deadline = parsed.deadline ? new Date(parsed.deadline) : undefined;
+        const isOpen = deadline ? deadline >= now : true;
+        return {
+            id: match.id || randomUUID(),
+            sourceName: metadata.source_name ? String(metadata.source_name) : undefined,
+            sourceUrl: metadata.source_url ? String(metadata.source_url) : undefined,
+            isOpen,
+            ...parsed,
+        };
+    });
+
+    return parsed.sort((a, b) => {
+        if (a.isOpen === b.isOpen) return 0;
+        return a.isOpen ? -1 : 1;
+    });
 }
