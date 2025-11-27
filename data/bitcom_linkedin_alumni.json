@@ -1,6 +1,6 @@
 {
-  "scraped_at": "2025-11-27T14:29:28.108314",
-  "total_profiles": 94,
+  "scraped_at": "2025-11-27T14:33:28.084299",
+  "total_profiles": 97,
   "alumni": [
     {
       "Name": "Prajakta Bapat",
@@ -1101,6 +1101,28 @@
         "PhonePe",
         "Bhanzu"
       ]
+    },
+    {
+      "Name": "Priti Saldanha",
+      "LinkedIn URL": "https://www.linkedin.com/in/pritisaldanha",
+      "Past Companies": [
+        "Sophia Girls College logo",
+        "IBMIBM18,966,278 followers18,966,278 followers",
+        "OracleOracle10,927,822 followers10,927,822 followers",
+        "BoostaBoosta"
+      ]
+    },
+    {
+      "Name": "Priti Saldanha",
+      "LinkedIn URL": "https://www.linkedin.com/in/pritisaldanha/overlay/about-this-profile",
+      "Past Companies": []
+    },
+    {
+      "Name": "Priti Saldanha",
+      "LinkedIn URL": "https://www.linkedin.com/in/pritisaldanha/overlay/contact-info",
+      "Past Companies": [
+        "Sophia Girls College logo"
+      ]
     }
   ],
   "all_companies": [
@@ -1166,6 +1188,7 @@
     "Bimtek GroupBimtek Group",
     "Birla Estates",
     "BlackRockBlackRock3 yrs 5 mos3 yrs 5 mos",
+    "BoostaBoosta",
     "Boston Consulting Group (BCG)Boston Consulting Group (BCG)",
     "Boston Consulting Group (BCG)Boston Consulting Group (BCG)5,185,296 followers5,185,296 followers",
     "Broadway",
@@ -1337,6 +1360,7 @@
     "IBMIBM18,965,764 followers18,965,764 followers",
     "IBMIBM18,965,784 followers18,965,784 followers",
     "IBMIBM18,966,206 followers18,966,206 followers",
+    "IBMIBM18,966,278 followers18,966,278 followers",
     "ICICI BankICICI Bank3,806,289 followers3,806,289 followers",
     "IMS Learning Resources Pvt. Ltd.IMS Learning Resources Pvt. Ltd.19,984 followers19,984 followers",
     "INCAE Business SchoolINCAE Business School16 yrs 11 mos16 yrs 11 mosCosta RicaCosta Rica",
@@ -1427,6 +1451,7 @@
     "OpenAI",
     "OracleOracle10,927,520 followers10,927,520 followers",
     "OracleOracle10,927,796 followers10,927,796 followers",
+    "OracleOracle10,927,822 followers10,927,822 followers",
     "PVR LimitedPVR Limited153,418 followers153,418 followers",
     "Peak XV PartnersPeak XV Partners",
     "People Trust",
@@ -1469,6 +1494,7 @@
     "SiemensSiemens8,301,971 followers8,301,971 followers",
     "Sify Technologies Limited.Sify Technologies Limited.104,923 followers104,923 followers",
     "Somerset Indus Capital PartnersSomerset Indus Capital Partners3,795 followers3,795 followers",
+    "Sophia Girls College logo",
     "Stanford UniversityStanford University1,443,802 followers1,443,802 followers",
     "Startups LatamStartups Latam",
     "Strategy&Strategy&",
@@ -1535,5 +1561,5 @@
     "nasscomnasscom",
     "upGrad"
   ],
-  "companies_count": 430
+  "companies_count": 434
 }
