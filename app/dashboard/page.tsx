@@ -126,8 +126,24 @@ const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {
 const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
   const counts: Record<string, number> = {};
   rows.forEach((row) => {
+    const status = String(row['Status'] || row['status'] || '').toLowerCase();
     const company = String(row['Company'] || row['company'] || '').trim();
+    
+    // Skip if no company name
     if (!company) return;
+    
+    // Exclude PPI entries
+    if (status.includes('ppi')) return;
+    
+    // Exclude Unplaced entries (empty status or status that doesn't include ppo/campus/off)
+    if (
+      !status ||
+      (!status.includes('ppo') && !status.includes('campus') && !status.includes('off'))
+    ) {
+      return;
+    }
+    
+    // Only count placed entries (PPO, Campus, or Off Campus)
     counts[company] = (counts[company] || 0) + 1;
   });
   return Object.entries(counts)
