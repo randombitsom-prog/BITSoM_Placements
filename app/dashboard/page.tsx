@@ -1,17 +1,14 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import ChatBot from '@/components/dashboard/ChatBot';
-import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX, ArrowUpRight } from 'lucide-react';
+import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX } from 'lucide-react';
 import Image from 'next/image';
-import Link from 'next/link';
 
 type PlacementStats = {
   ppos: number;
@@ -145,25 +142,6 @@ export default function Dashboard() {
   const [companyOffers, setCompanyOffers] = useState<CompanyOffer[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isChatExpanded, setIsChatExpanded] = useState(false);
-  const [showReleaseNotes, setShowReleaseNotes] = useState(true);
-  const router = useRouter();
-
-  useEffect(() => {
-    // Check authentication
-    if (typeof window !== 'undefined') {
-      const legacyAuth = localStorage.getItem('isAuthenticated');
-      if (legacyAuth) {
-        sessionStorage.setItem('isAuthenticated', legacyAuth);
-        localStorage.removeItem('isAuthenticated');
-      }
-
-      const isAuthenticated = sessionStorage.getItem('isAuthenticated');
-      if (!isAuthenticated) {
-        router.push('/login');
-      }
-    }
-  }, [router]);
 
   useEffect(() => {
     const fetchSheet = async () => {
@@ -192,47 +170,6 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
-      {showReleaseNotes && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white shadow-2xl border border-orange-200">
-            <div className="p-6 space-y-4">
-              <div>
-                <p className="text-xs uppercase tracking-widest text-orange-500 font-semibold">
-                  Release v1
-                </p>
-                <h2 className="text-2xl font-bold text-slate-900 mt-1">
-                  What’s new in PlaceBot
-                </h2>
-              </div>
-              <ol className="space-y-3 text-slate-700 list-decimal list-inside">
-                <li>
-                  Live placement dashboard for the 2026 batch with real-time stats on PPOs, offers, and CTC ranges.
-                </li>
-                <li>
-                  Job Postings Explorer listing all active and closed opportunities with search, filters, and full role details.
-                </li>
-                <li>
-                  PlaceBot AI Copilot trained on past interview transcripts, current batch placement data, and alumni career paths.
-                </li>
-                <li>
-                  Context-aware answering powered by Pinecone RAG and OpenAI, with citations and web-search fallback.
-                </li>
-                <li>
-                  Integrated UI with a collapsible chatbot panel and seamless navigation between stats, job postings, and assistance.
-                </li>
-              </ol>
-              <div className="flex justify-end">
-                <Button
-                  onClick={() => setShowReleaseNotes(false)}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700"
-                >
-                  Okay
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       {/* Header */}
       <header className="bg-white/80 border-b border-orange-200 shadow-lg backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-[1400px] mx-auto px-6 py-4">
@@ -255,28 +192,13 @@ export default function Dashboard() {
               </p>
               <p className="text-xs text-slate-500 mt-1">Batch of 2026</p>
             </div>
-            <Link
-              href="/job-postings"
-              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg shadow-orange-500/30 hover:shadow-orange-500/60 transition"
-            >
-              Job Postings
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
           </div>
         </div>
       </header>
 
-      <div
-        className={`max-w-[1400px] mx-auto p-6 flex flex-col xl:flex-row gap-6 transition-all duration-300 ${
-          isChatExpanded ? 'xl:items-center xl:justify-center' : ''
-        }`}
-      >
-        {/* Main Content - 2/3 width */}
-        <div
-          className={`flex-1 space-y-6 transition-all duration-300 ${
-            isChatExpanded ? 'max-w-4xl w-full mx-auto' : ''
-          }`}
-        >
+      <div className="max-w-[1400px] mx-auto p-6">
+        {/* Main Content */}
+        <div className="space-y-6">
           {/* Key Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
@@ -557,11 +479,6 @@ export default function Dashboard() {
               </div>
             </CardContent>
           </Card>
-        </div>
-
-        {/* ChatBot - 1/3 width */}
-        <div className="w-full lg:w-[420px]">
-          <ChatBot onExpandChange={setIsChatExpanded} />
         </div>
       </div>
     </div>
