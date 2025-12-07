@@ -1,6 +1,6 @@
-# BITSoM Placements – PlaceBot
+# BITSoM Placements – PlacementStats
 
-PlaceBot is BITSoM’s placement copilot: a Next.js web app that blends a live dashboard, job-postings explorer, and AI assistant grounded in internal RAG data (Google Sheet stats, Skynet postings, interview transcripts, LinkedIn alumni). It is deployed at [bitsom-placements.vercel.app](https://bitsom-placements.vercel.app/).
+PlacementStats is BITSoM's placement copilot: a Next.js web app that blends a live dashboard, job-postings explorer, and AI assistant grounded in internal RAG data (Google Sheet stats, Skynet postings, interview transcripts, LinkedIn alumni). It is deployed at [bitsom-placements.vercel.app](https://bitsom-placements.vercel.app/).
 
 ---
 
@@ -30,7 +30,7 @@ PlaceBot is BITSoM’s placement copilot: a Next.js web app that blends a live d
 | ------- | ---------- |
 | **Placement Dashboard** | Real-time PPO/off-campus stats, cluster/day breakdowns, highest/average CTC, offer distributions, and a searchable company-offer table fueled by the live Google Sheet. |
 | **Job Postings Explorer** | `/job-postings` + `/api/placements` show open/closed roles with role, location, deadlines, description, and “open” status. |
-| **PlaceBot Chat** | Streaming SSE chat with quick prompts (KPMG transcripts, job postings, J.P. Morgan alumni), markdown link support, expand-to-90%-viewport modal, and alumni-aware behavior. |
+| **PlacementStats Chat** | Streaming SSE chat with quick prompts (KPMG transcripts, job postings, J.P. Morgan alumni), markdown link support, expand-to-90%-viewport modal, and alumni-aware behavior. |
 | **LinkedIn Alumni Discovery** | Pinecone `linkedin_profiles` namespace stores curated alumni (name, role, class year, LinkedIn URL). Replies append top matches when “alum/alumni” is detected. |
 | **Interview Transcript RAG** | Pinecone `transcripts` namespace contains 38 cleaned transcripts (company, interviewee, Q&A chunks) for prep. |
 | **Moderation & Guardrails** | OpenAI moderation + custom prompt guardrails keep the AI safe and on-topic. |

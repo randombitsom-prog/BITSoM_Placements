@@ -13,11 +13,11 @@ export default function Terms() {
                     <ArrowLeftIcon className="w-4 h-4" />
                     Back to Chatbot
                 </Link>
-                <h1 className="text-3xl font-bold">PlaceBot</h1>
+                <h1 className="text-3xl font-bold">PlacementStats</h1>
                 <h2 className="text-2xl font-semibold">Terms of Use / Disclaimer</h2>
 
                 <p className="text-gray-700">
-                    The following terms of use govern access to and use of the PlaceBot
+                    The following terms of use govern access to and use of the PlacementStats
                     Assistant ("AI Chatbot"), an artificial intelligence tool provided by
                     {OWNER_NAME} ("I", "me", or "myself"). By engaging with the AI
                     Chatbot, you agree to these terms. If you do not agree, you may not

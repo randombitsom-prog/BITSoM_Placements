@@ -69,7 +69,7 @@ const renderMessageContent = (text: string) => {
 
 const WELCOME_MESSAGE: Message = {
   id: 'welcome-1',
-  text: "Hi! I'm PlaceBot. I can help you with previous year interview transcripts, preparation tips, company insights, and more. How can I assist you today?",
+  text: "Hi! I'm PlacementStats. I can help you with previous year interview transcripts, preparation tips, company insights, and more. How can I assist you today?",
   sender: 'bot',
   timestamp: new Date(),
 };
@@ -413,7 +413,7 @@ export default function ChatBot({ onExpandChange }: ChatBotProps) {
               <Bot className="h-6 w-6 text-white" />
             </div>
             <div className="flex flex-col text-white leading-tight">
-              <CardTitle className="text-lg font-semibold">PlaceBot Assistant</CardTitle>
+              <CardTitle className="text-lg font-semibold">PlacementStats Assistant</CardTitle>
               <p className="text-xs text-orange-100 font-medium">Always here to help you</p>
             </div>
           </div>

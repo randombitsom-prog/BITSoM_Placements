@@ -1,4 +1,4 @@
-# PlaceBot Repository Guide
+# PlacementStats Repository Guide
 
 ## Adding/Removing Tools
 

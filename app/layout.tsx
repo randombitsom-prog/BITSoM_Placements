@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PlaceBot",
-  description: "PlaceBot",
+  title: "PlacementStats",
+  description: "PlacementStats",
 };
 
 export default function RootLayout({
