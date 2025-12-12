@@ -25,6 +25,7 @@ type PlacementStats = {
 type CompanyOffer = {
   company: string;
   offers: number;
+  averageCTC: number;
 };
 
 type SheetRow = Record<string, string | number>;
@@ -125,9 +126,13 @@ const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {
 
 const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
   const counts: Record<string, number> = {};
+  const ctcSums: Record<string, number> = {};
+  const ctcCounts: Record<string, number> = {};
+  
   rows.forEach((row) => {
     const status = String(row['Status'] || row['status'] || '').toLowerCase();
     const company = String(row['Company'] || row['company'] || '').trim();
+    const ctc = normalizeNumber(row['CTC'] || row['ctc']);
     
     // Skip if no company name
     if (!company) return;
@@ -145,9 +150,21 @@ const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
     
     // Only count placed entries (PPO, Campus, or Off Campus)
     counts[company] = (counts[company] || 0) + 1;
+    
+    // Calculate average CTC for each company
+    if (!Number.isNaN(ctc)) {
+      ctcSums[company] = (ctcSums[company] || 0) + ctc;
+      ctcCounts[company] = (ctcCounts[company] || 0) + 1;
+    }
   });
+  
   return Object.entries(counts)
-    .map(([company, offers]) => ({ company, offers }))
+    .map(([company, offers]) => {
+      const avgCTC = ctcCounts[company] && ctcSums[company]
+        ? parseFloat((ctcSums[company] / ctcCounts[company]).toFixed(2))
+        : 0;
+      return { company, offers, averageCTC: avgCTC };
+    })
     .sort((a, b) => b.offers - a.offers);
 };
 
@@ -204,7 +221,7 @@ export default function Dashboard() {
                 BITSoM Placement Dashboard
               </h1>
               <p className="text-sm text-slate-600">
-                Real-time placement statistics and career opportunities
+                Real-time placement statistics
               </p>
               <p className="text-xs text-slate-500 mt-1">Batch of 2026</p>
             </div>
@@ -435,21 +452,22 @@ export default function Dashboard() {
                 <Table>
                   <TableHeader className="bg-orange-50/80 sticky top-0 z-10">
                     <TableRow className="border-orange-200 hover:bg-orange-50">
-                      <TableHead className="text-slate-700 h-12">Company Name</TableHead>
+                      <TableHead className="text-slate-700 h-12 pl-6">Company Name</TableHead>
                       <TableHead className="text-right text-slate-700 h-12">Number of Offers</TableHead>
+                      <TableHead className="text-right text-slate-700 h-12 pr-6">Average CTC</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoadingData && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-slate-500 py-6">
+                        <TableCell colSpan={3} className="text-center text-slate-500 py-6">
                           Loading latest data...
                         </TableCell>
                       </TableRow>
                     )}
                     {!isLoadingData && !filteredCompanies.length && (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-slate-500 py-6">
+                        <TableCell colSpan={3} className="text-center text-slate-500 py-6">
                           {loadError || 'No companies match the current filters.'}
                         </TableCell>
                       </TableRow>
@@ -467,7 +485,7 @@ export default function Dashboard() {
                             key={index} 
                             className="border-orange-100 hover:bg-orange-50/50 transition-colors"
                           >
-                            <TableCell className="text-slate-700 py-4">
+                            <TableCell className="text-slate-700 py-4 pl-6">
                               <div className="flex items-center gap-3">
                                 <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                                 {item.company}
@@ -487,6 +505,13 @@ export default function Dashboard() {
                               >
                                 {item.offers}
                               </Badge>
+                            </TableCell>
+                            <TableCell className="text-right py-4 pr-6">
+                              {item.averageCTC > 0 ? (
+                                <span className="text-slate-700 font-medium">{item.averageCTC} LPA</span>
+                              ) : (
+                                <span className="text-slate-400">N/A</span>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
