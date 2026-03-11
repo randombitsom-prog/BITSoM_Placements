@@ -26,6 +26,7 @@ type CompanyOffer = {
   company: string;
   offers: number;
   averageCTC: number;
+  industry: string;
 };
 
 type SheetRow = Record<string, string | number>;
@@ -128,11 +129,13 @@ const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
   const counts: Record<string, number> = {};
   const ctcSums: Record<string, number> = {};
   const ctcCounts: Record<string, number> = {};
+  const industryByCompany: Record<string, string> = {};
   
   rows.forEach((row) => {
     const status = String(row['Status'] || row['status'] || '').toLowerCase();
     const company = String(row['Company'] || row['company'] || '').trim();
     const ctc = normalizeNumber(row['CTC'] || row['ctc']);
+    const industry = String(row['Industry'] ?? row['industry'] ?? '').trim();
     
     // Skip if no company name
     if (!company) return;
@@ -151,6 +154,11 @@ const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
     // Only count placed entries (PPO, Campus, or Off Campus)
     counts[company] = (counts[company] || 0) + 1;
     
+    // Store first non-empty industry per company
+    if (industry && !industryByCompany[company]) {
+      industryByCompany[company] = industry;
+    }
+    
     // Calculate average CTC for each company
     if (!Number.isNaN(ctc)) {
       ctcSums[company] = (ctcSums[company] || 0) + ctc;
@@ -163,7 +171,12 @@ const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
       const avgCTC = ctcCounts[company] && ctcSums[company]
         ? parseFloat((ctcSums[company] / ctcCounts[company]).toFixed(2))
         : 0;
-      return { company, offers, averageCTC: avgCTC };
+      return {
+        company,
+        offers,
+        averageCTC: avgCTC,
+        industry: industryByCompany[company] ?? '',
+      };
     })
     .sort((a, b) => b.offers - a.offers);
 };
@@ -453,6 +466,7 @@ export default function Dashboard() {
                   <TableHeader className="bg-orange-50/80 sticky top-0 z-10">
                     <TableRow className="border-orange-200 hover:bg-orange-50">
                       <TableHead className="text-slate-700 h-12 pl-6">Company Name</TableHead>
+                      <TableHead className="text-slate-700 h-12">Industry</TableHead>
                       <TableHead className="text-right text-slate-700 h-12">Number of Offers</TableHead>
                       <TableHead className="text-right text-slate-700 h-12 pr-6">Average CTC</TableHead>
                     </TableRow>
@@ -460,14 +474,14 @@ export default function Dashboard() {
                   <TableBody>
                     {isLoadingData && (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-slate-500 py-6">
+                        <TableCell colSpan={4} className="text-center text-slate-500 py-6">
                           Loading latest data...
                         </TableCell>
                       </TableRow>
                     )}
                     {!isLoadingData && !filteredCompanies.length && (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-slate-500 py-6">
+                        <TableCell colSpan={4} className="text-center text-slate-500 py-6">
                           {loadError || 'No companies match the current filters.'}
                         </TableCell>
                       </TableRow>
@@ -490,6 +504,9 @@ export default function Dashboard() {
                                 <div className="w-1.5 h-1.5 bg-orange-500 rounded-full"></div>
                                 {item.company}
                               </div>
+                            </TableCell>
+                            <TableCell className="text-slate-700 py-4">
+                              {item.industry || '—'}
                             </TableCell>
                             <TableCell className="text-right py-4">
                               <Badge 
