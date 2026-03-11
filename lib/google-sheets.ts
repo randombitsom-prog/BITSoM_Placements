@@ -9,7 +9,7 @@ export const SHEET_ID =
  * Returns Google Auth for Sheets API using service account credentials.
  * Set GOOGLE_SHEETS_CREDENTIALS (JSON string) or GOOGLE_APPLICATION_CREDENTIALS (path to JSON).
  */
-function getSheetsAuth(): ReturnType<typeof google.auth.GoogleAuth> {
+function getSheetsAuth(): InstanceType<typeof google.auth.GoogleAuth> {
   const credsJson = process.env.GOOGLE_SHEETS_CREDENTIALS;
   if (credsJson) {
     try {
