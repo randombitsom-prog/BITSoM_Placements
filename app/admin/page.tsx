@@ -42,14 +42,50 @@ import {
   Search,
   Pencil,
   ArrowLeft,
+  Users,
+  Award,
+  IndianRupee,
+  TrendingUp,
   Briefcase,
-  ChevronDown,
-  ChevronUp,
-  Globe,
-  Loader2,
+  UserCheck,
+  UserX,
+  BarChart3,
+  List,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 type RowWithIndex = SheetRow & { __index: number };
+
+type PlacementStats = {
+  ppos: number;
+  campusPlaced: number;
+  offCampusPlaced: number;
+  totalPlaced: number;
+  totalPPIs: number;
+  totalUnplaced: number;
+  highestCTC: number;
+  averageCTC: number;
+  lowestCTC: number;
+};
+
+type CompanyOffer = {
+  company: string;
+  offers: number;
+  averageCTC: number;
+  industry: string;
+};
+
+const DEFAULT_STATS: PlacementStats = {
+  ppos: 0,
+  campusPlaced: 0,
+  offCampusPlaced: 0,
+  totalPlaced: 0,
+  totalPPIs: 0,
+  totalUnplaced: 0,
+  highestCTC: 0,
+  averageCTC: 0,
+  lowestCTC: 0,
+};
 
 const normalizeNumber = (value: string | number | undefined): number => {
   if (value === undefined || value === null) return NaN;
@@ -57,6 +93,86 @@ const normalizeNumber = (value: string | number | undefined): number => {
   const cleaned = String(value).replace(/[^\d.-]/g, "");
   const num = parseFloat(cleaned);
   return Number.isFinite(num) ? num : NaN;
+};
+
+const buildStatsFromRows = (rows: SheetRow[]): PlacementStats => {
+  if (!rows.length) return DEFAULT_STATS;
+  let ppos = 0;
+  let campusPlaced = 0;
+  let offCampusPlaced = 0;
+  let totalPPIs = 0;
+  let totalUnplaced = 0;
+  const ctcValues: number[] = [];
+  rows.forEach((row) => {
+    const status = String(row["Status"] ?? row["status"] ?? "").toLowerCase();
+    const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
+    if (!Number.isNaN(ctc)) ctcValues.push(ctc);
+    if (status.includes("ppo")) ppos += 1;
+    else if (status.includes("off")) offCampusPlaced += 1;
+    else if (status.includes("campus")) campusPlaced += 1;
+    if (status.includes("ppi")) totalPPIs += 1;
+    if (
+      !status ||
+      (!status.includes("ppo") && !status.includes("campus") && !status.includes("off"))
+    ) {
+      totalUnplaced += 1;
+    }
+  });
+  const placedTotal = ppos + campusPlaced + offCampusPlaced;
+  const highestCTC = ctcValues.length ? Math.max(...ctcValues) : 0;
+  const lowestCTC = ctcValues.length ? Math.min(...ctcValues) : 0;
+  const averageCTC = ctcValues.length
+    ? parseFloat((ctcValues.reduce((s, v) => s + v, 0) / ctcValues.length).toFixed(2))
+    : 0;
+  return {
+    ppos,
+    campusPlaced,
+    offCampusPlaced,
+    totalPlaced: placedTotal,
+    totalPPIs,
+    totalUnplaced,
+    highestCTC,
+    averageCTC,
+    lowestCTC,
+  };
+};
+
+const buildCompanyOffers = (rows: SheetRow[]): CompanyOffer[] => {
+  const counts: Record<string, number> = {};
+  const ctcSums: Record<string, number> = {};
+  const ctcCounts: Record<string, number> = {};
+  const industryByCompany: Record<string, string> = {};
+  rows.forEach((row) => {
+    const status = String(row["Status"] ?? row["status"] ?? "").toLowerCase();
+    const company = String(row["Company"] ?? row["company"] ?? "").trim();
+    const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
+    const industry = String(row["Industry"] ?? row["industry"] ?? "").trim();
+    if (!company) return;
+    if (status.includes("ppi")) return;
+    if (
+      !status ||
+      (!status.includes("ppo") && !status.includes("campus") && !status.includes("off"))
+    ) {
+      return;
+    }
+    counts[company] = (counts[company] ?? 0) + 1;
+    if (industry && !industryByCompany[company]) industryByCompany[company] = industry;
+    if (!Number.isNaN(ctc)) {
+      ctcSums[company] = (ctcSums[company] ?? 0) + ctc;
+      ctcCounts[company] = (ctcCounts[company] ?? 0) + 1;
+    }
+  });
+  return Object.entries(counts)
+    .map(([company, offers]) => ({
+      company,
+      offers,
+      averageCTC:
+        ctcCounts[company] && ctcSums[company]
+          ? parseFloat((ctcSums[company] / ctcCounts[company]).toFixed(2))
+          : 0,
+      industry: industryByCompany[company] ?? "",
+    }))
+    .sort((a, b) => b.offers - a.offers);
 };
 
 export default function AdminDashboardPage() {
@@ -75,19 +191,9 @@ export default function AdminDashboardPage() {
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [industrySectionOpen, setIndustrySectionOpen] = useState(true);
-  const [companyIndustry, setCompanyIndustry] = useState<Record<string, string>>({});
-  const [industryBulkSaving, setIndustryBulkSaving] = useState(false);
-  const [industryBulkMessage, setIndustryBulkMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [industryLookupLoading, setIndustryLookupLoading] = useState(false);
-  const [industryLookupMessage, setIndustryLookupMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-    details?: Record<string, string>;
-  } | null>(null);
+  const [activeTab, setActiveTab] = useState<"overview" | "records">("overview");
+  const [overviewSearch, setOverviewSearch] = useState("");
+  const [overviewFilter, setOverviewFilter] = useState("all");
 
   const fetchData = async () => {
     setLoading(true);
@@ -130,16 +236,6 @@ export default function AdminDashboardPage() {
     return Array.from(set).sort();
   }, [rows]);
 
-  const companyToCurrentIndustry = useMemo(() => {
-    const map = new Map<string, string>();
-    rows.forEach((r) => {
-      const c = String(r["Company"] ?? r["company"] ?? "").trim();
-      const i = String(r["Industry"] ?? r["industry"] ?? "").trim();
-      if (c && !map.has(c) && i) map.set(c, i);
-    });
-    return Object.fromEntries(map);
-  }, [rows]);
-
   const industryOptions = useMemo(() => {
     const set = new Set<string>();
     rows.forEach((r) => {
@@ -148,6 +244,29 @@ export default function AdminDashboardPage() {
     });
     return Array.from(set).sort();
   }, [rows]);
+
+  const placementStats = useMemo(
+    () => buildStatsFromRows(rows),
+    [rows]
+  );
+
+  const companyOffers = useMemo(
+    () => buildCompanyOffers(rows),
+    [rows]
+  );
+
+  const filteredCompanyOffers = useMemo(() => {
+    return companyOffers
+      .filter((item) =>
+        item.company.toLowerCase().includes(overviewSearch.toLowerCase())
+      )
+      .filter((item) => {
+        if (overviewFilter === "high") return item.offers >= 5;
+        if (overviewFilter === "medium") return item.offers >= 2 && item.offers <= 4;
+        if (overviewFilter === "low") return item.offers === 1;
+        return true;
+      });
+  }, [companyOffers, overviewSearch, overviewFilter]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
@@ -245,86 +364,6 @@ export default function AdminDashboardPage() {
     router.replace("/");
   };
 
-  const hasIndustryColumn = columns.some(
-    (c) => (c || "").toLowerCase() === "industry"
-  );
-
-  const applyIndustryByCompany = async () => {
-    const updates: Record<string, string> = {};
-    companyOptions.forEach((company) => {
-      const industry = (companyIndustry[company] ?? "").trim();
-      if (industry) updates[company] = industry;
-    });
-    if (Object.keys(updates).length === 0) {
-      setIndustryBulkMessage({
-        type: "error",
-        text: "Enter at least one industry to apply.",
-      });
-      return;
-    }
-    setIndustryBulkSaving(true);
-    setIndustryBulkMessage(null);
-    try {
-      const res = await fetch("/api/admin/sheet/industry", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ updates }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setIndustryBulkMessage({
-          type: "error",
-          text: data.error || "Failed to update sheet",
-        });
-        return;
-      }
-      setIndustryBulkMessage({
-        type: "success",
-        text: data.message || `Updated ${data.updatedCount ?? 0} row(s).`,
-      });
-      await fetchData();
-    } catch (e) {
-      setIndustryBulkMessage({
-        type: "error",
-        text: "Network error. Please try again.",
-      });
-    } finally {
-      setIndustryBulkSaving(false);
-    }
-  };
-
-  const lookupIndustriesOnline = async () => {
-    setIndustryLookupLoading(true);
-    setIndustryLookupMessage(null);
-    setIndustryBulkMessage(null);
-    try {
-      const res = await fetch("/api/admin/sheet/industry/lookup", {
-        method: "POST",
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setIndustryLookupMessage({
-          type: "error",
-          text: data.error || "Lookup failed",
-        });
-        return;
-      }
-      setIndustryLookupMessage({
-        type: "success",
-        text: data.message || `Updated ${data.updatedCount ?? 0} row(s).`,
-        details: data.updates,
-      });
-      await fetchData();
-    } catch (e) {
-      setIndustryLookupMessage({
-        type: "error",
-        text: "Network error. Please try again.",
-      });
-    } finally {
-      setIndustryLookupLoading(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
       <header className="bg-white/80 border-b border-orange-200 shadow-sm sticky top-0 z-30">
@@ -362,146 +401,247 @@ export default function AdminDashboardPage() {
       </header>
 
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
-        {hasIndustryColumn && (
-          <Card className="bg-white/90 border-orange-200 shadow-xl">
-            <CardHeader
-              className="border-b border-orange-100 cursor-pointer hover:bg-orange-50/50 transition-colors"
-              onClick={() => setIndustrySectionOpen((o) => !o)}
-            >
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-slate-800">
-                  <Briefcase className="h-5 w-5 text-orange-600" />
-                  Set industry by company (one-time bulk)
-                </CardTitle>
-                {industrySectionOpen ? (
-                  <ChevronUp className="h-5 w-5 text-slate-500" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-slate-500" />
-                )}
-              </div>
-              <p className="text-sm text-slate-500 mt-1">
-                Set industry for each company once; all rows with that company
-                will be updated in the sheet.
-              </p>
-            </CardHeader>
-            {industrySectionOpen && (
-              <CardContent className="pt-4">
-                <div className="flex flex-col gap-4 mb-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <Button
-                      onClick={lookupIndustriesOnline}
-                      disabled={industryLookupLoading}
-                      className="bg-slate-700 hover:bg-slate-800 text-white"
-                    >
-                      {industryLookupLoading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Looking up companies online…
-                        </>
-                      ) : (
-                        <>
-                          <Globe className="h-4 w-4 mr-2" />
-                          Look up industries online and update sheet
-                        </>
-                      )}
-                    </Button>
-                    <span className="text-xs text-slate-500">
-                      Uses web search + AI to research each company and fill Industry once.
-                    </span>
-                  </div>
-                  {industryLookupMessage && (
-                    <div
-                      className={
-                        industryLookupMessage.type === "success"
-                          ? "text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2"
-                          : "text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2"
-                      }
-                    >
-                      <p>{industryLookupMessage.text}</p>
-                      {industryLookupMessage.details &&
-                        Object.keys(industryLookupMessage.details).length > 0 && (
-                          <p className="mt-2 text-xs opacity-90">
-                            Mapped:{" "}
-                            {Object.entries(industryLookupMessage.details)
-                              .map(([c, i]) => `${c} → ${i}`)
-                              .join("; ")}
-                          </p>
-                        )}
-                    </div>
-                  )}
-                </div>
+        {/* Tab navigation */}
+        <div className="flex gap-1 p-1 bg-white/80 rounded-lg border border-orange-200 shadow-inner w-fit">
+          <button
+            type="button"
+            onClick={() => setActiveTab("overview")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "overview"
+                ? "bg-orange-500 text-white shadow"
+                : "text-slate-600 hover:bg-orange-50 hover:text-slate-800"
+            }`}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("records")}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-md text-sm font-medium transition-colors ${
+              activeTab === "records"
+                ? "bg-orange-500 text-white shadow"
+                : "text-slate-600 hover:bg-orange-50 hover:text-slate-800"
+            }`}
+          >
+            <List className="h-4 w-4" />
+            Individual records
+          </button>
+        </div>
 
-                <p className="text-sm text-slate-600 mb-3">
-                  Or set industries manually below and apply:
-                </p>
-                {industryBulkMessage && (
-                  <p
-                    className={
-                      industryBulkMessage.type === "success"
-                        ? "text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 mb-4"
-                        : "text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4"
-                    }
-                  >
-                    {industryBulkMessage.text}
+        {activeTab === "overview" && (
+          <div className="space-y-6">
+            {/* Key stats cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <CardTitle className="text-sm text-orange-100">Total Placed</CardTitle>
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Users className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="text-4xl text-white mb-1">{placementStats.totalPlaced}</div>
+                  <p className="text-xs text-orange-100">
+                    Campus: {placementStats.campusPlaced} • Off: {placementStats.offCampusPlaced}
                   </p>
-                )}
-                <div className="max-h-[300px] overflow-auto border border-orange-100 rounded-lg">
+                </CardContent>
+              </Card>
+              <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <CardTitle className="text-sm text-blue-100">PPO&apos;s</CardTitle>
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Award className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="text-4xl text-white mb-1">{placementStats.ppos}</div>
+                  <p className="text-xs text-blue-100">Pre-Placement Offers</p>
+                </CardContent>
+              </Card>
+              <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <CardTitle className="text-sm text-emerald-100">Average CTC</CardTitle>
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <IndianRupee className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="text-4xl text-white mb-1">
+                    {placementStats.averageCTC} <span className="text-xl">LPA</span>
+                  </div>
+                  <p className="text-xs text-emerald-100">
+                    Range: {placementStats.lowestCTC} – {placementStats.highestCTC} LPA
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-lg">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                  <CardTitle className="text-sm text-purple-100">Highest CTC</CardTitle>
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <TrendingUp className="h-5 w-5 text-white" />
+                  </div>
+                </CardHeader>
+                <CardContent className="relative z-10">
+                  <div className="text-4xl text-white mb-1">
+                    {placementStats.highestCTC} <span className="text-xl">LPA</span>
+                  </div>
+                  <p className="text-xs text-purple-100">Top package</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Placement breakdown + metrics */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-white/90 border-orange-200 shadow-xl">
+                <CardHeader className="border-b border-orange-100">
+                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                    <Briefcase className="h-5 w-5 text-orange-600" />
+                    Placement Breakdown
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <span className="text-slate-700">PPO&apos;s</span>
+                      <Badge className="bg-blue-600">{placementStats.ppos}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <span className="text-slate-700">Campus Placed</span>
+                      <Badge className="bg-green-600">{placementStats.campusPlaced}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                      <span className="text-slate-700">Off Campus Placed</span>
+                      <Badge className="bg-emerald-600">{placementStats.offCampusPlaced}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <span className="text-slate-700">Total Placed</span>
+                      <Badge className="bg-orange-600">{placementStats.totalPlaced}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-white/90 border-orange-200 shadow-xl">
+                <CardHeader className="border-b border-orange-100">
+                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5 text-orange-600" />
+                    Additional Metrics
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <span className="text-slate-700">Total PPI&apos;s</span>
+                      <Badge className="bg-yellow-600">{placementStats.totalPPIs}</Badge>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <span className="text-slate-700">Total Unplaced</span>
+                      <Badge variant="destructive">{placementStats.totalUnplaced}</Badge>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Company-wise offers */}
+            <Card className="bg-white/90 border-orange-200 shadow-xl">
+              <CardHeader className="border-b border-orange-100">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-slate-800 flex items-center gap-2">
+                    <Building2 className="h-5 w-5 text-orange-600" />
+                    Company-wise Offers
+                  </CardTitle>
+                  <Badge className="bg-orange-600">Total: {placementStats.totalPlaced}</Badge>
+                </div>
+                <div className="flex gap-3 mt-4">
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search companies..."
+                      value={overviewSearch}
+                      onChange={(e) => setOverviewSearch(e.target.value)}
+                      className="pl-9 bg-white border-orange-200"
+                    />
+                  </div>
+                  <Select value={overviewFilter} onValueChange={setOverviewFilter}>
+                    <SelectTrigger className="w-[180px] bg-white border-orange-200">
+                      <SelectValue placeholder="Filter" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All companies</SelectItem>
+                      <SelectItem value="high">High (5+)</SelectItem>
+                      <SelectItem value="medium">Medium (2–4)</SelectItem>
+                      <SelectItem value="low">Single offer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="max-h-[500px] overflow-auto">
                   <Table>
-                    <TableHeader className="bg-orange-50/80">
+                    <TableHeader className="bg-orange-50/80 sticky top-0 z-10">
                       <TableRow className="border-orange-200">
-                        <TableHead className="text-slate-700">Company</TableHead>
-                        <TableHead className="text-slate-700">
-                          Current industry
-                        </TableHead>
-                        <TableHead className="text-slate-700">
-                          Set industry (applies to all rows)
-                        </TableHead>
+                        <TableHead className="text-slate-700 pl-6">Company</TableHead>
+                        <TableHead className="text-slate-700">Industry</TableHead>
+                        <TableHead className="text-right text-slate-700">Offers</TableHead>
+                        <TableHead className="text-right text-slate-700 pr-6">Avg CTC</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {companyOptions.map((company) => (
-                        <TableRow
-                          key={company}
-                          className="border-orange-100 hover:bg-orange-50/30"
-                        >
-                          <TableCell className="font-medium text-slate-700">
-                            {company}
-                          </TableCell>
-                          <TableCell className="text-slate-600">
-                            {companyToCurrentIndustry[company] || "—"}
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              placeholder="e.g. Consulting, E-commerce"
-                              value={companyIndustry[company] ?? ""}
-                              onChange={(e) =>
-                                setCompanyIndustry((prev) => ({
-                                  ...prev,
-                                  [company]: e.target.value,
-                                }))
-                              }
-                              className="max-w-xs bg-white border-orange-200"
-                            />
+                      {loading && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6 text-slate-500">
+                            Loading...
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
+                      {!loading && filteredCompanyOffers.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={4} className="text-center py-6 text-slate-500">
+                            No companies match the filters.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {!loading &&
+                        filteredCompanyOffers.map((item, idx) => (
+                          <TableRow key={idx} className="border-orange-100 hover:bg-orange-50/50">
+                            <TableCell className="py-3 pl-6 font-medium text-slate-700">
+                              {item.company}
+                            </TableCell>
+                            <TableCell className="py-3 text-slate-600">
+                              {item.industry || "—"}
+                            </TableCell>
+                            <TableCell className="py-3 text-right">
+                              <Badge
+                                className={
+                                  item.offers >= 10
+                                    ? "bg-orange-600"
+                                    : item.offers >= 5
+                                      ? "bg-orange-500"
+                                      : "bg-slate-500"
+                                }
+                              >
+                                {item.offers}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="py-3 text-right pr-6">
+                              {item.averageCTC > 0 ? (
+                                <span className="font-medium text-slate-700">{item.averageCTC} LPA</span>
+                              ) : (
+                                <span className="text-slate-400">N/A</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
-                <Button
-                  onClick={applyIndustryByCompany}
-                  disabled={industryBulkSaving}
-                  className="mt-4 bg-orange-600 hover:bg-orange-700"
-                >
-                  {industryBulkSaving
-                    ? "Updating sheet..."
-                    : "Apply industry to sheet (all matching rows)"}
-                </Button>
               </CardContent>
-            )}
-          </Card>
+            </Card>
+          </div>
         )}
 
+        {activeTab === "records" && (
         <Card className="bg-white/90 border-orange-200 shadow-xl">
           <CardHeader className="border-b border-orange-100">
             <CardTitle className="flex items-center gap-2 text-slate-800">
@@ -513,82 +653,100 @@ export default function AdminDashboardPage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mt-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search all columns..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9 bg-white border-orange-200"
-                />
+              <div className="space-y-1.5">
+                <Label className="text-slate-600 text-sm font-medium">Search</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search all columns..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="pl-9 bg-white border-orange-200"
+                  />
+                </div>
               </div>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="bg-white border-orange-200">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  {statusOptions.map((s) => (
-                    <SelectItem key={s} value={s.toLowerCase()}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={filterCompany} onValueChange={setFilterCompany}>
-                <SelectTrigger className="bg-white border-orange-200">
-                  <SelectValue placeholder="Company" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All companies</SelectItem>
-                  {companyOptions.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {industryOptions.length > 0 && (
-                <Select value={filterIndustry} onValueChange={setFilterIndustry}>
+              <div className="space-y-1.5">
+                <Label className="text-slate-600 text-sm font-medium">Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
                   <SelectTrigger className="bg-white border-orange-200">
-                    <SelectValue placeholder="Industry" />
+                    <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All industries</SelectItem>
-                    {industryOptions.map((i) => (
-                      <SelectItem key={i} value={i}>
-                        {i}
+                    <SelectItem value="all">All statuses</SelectItem>
+                    {statusOptions.map((s) => (
+                      <SelectItem key={s} value={s.toLowerCase()}>
+                        {s}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-slate-600 text-sm font-medium">Company</Label>
+                <Select value={filterCompany} onValueChange={setFilterCompany}>
+                  <SelectTrigger className="bg-white border-orange-200">
+                    <SelectValue placeholder="Company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All companies</SelectItem>
+                    {companyOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {industryOptions.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-slate-600 text-sm font-medium">Industry</Label>
+                  <Select value={filterIndustry} onValueChange={setFilterIndustry}>
+                    <SelectTrigger className="bg-white border-orange-200">
+                      <SelectValue placeholder="Industry" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All industries</SelectItem>
+                      {industryOptions.map((i) => (
+                        <SelectItem key={i} value={i}>
+                          {i}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
-              <Select value={ctcMin} onValueChange={setCtcMin}>
-                <SelectTrigger className="bg-white border-orange-200">
-                  <SelectValue placeholder="CTC min (LPA)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
-                    <SelectItem key={n} value={String(n)}>
-                      {n}+ LPA
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={ctcMax} onValueChange={setCtcMax}>
-                <SelectTrigger className="bg-white border-orange-200">
-                  <SelectValue placeholder="CTC max (LPA)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any</SelectItem>
-                  {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
-                    <SelectItem key={n} value={String(n)}>
-                      Up to {n} LPA
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-1.5">
+                <Label className="text-slate-600 text-sm font-medium">CTC min (LPA)</Label>
+                <Select value={ctcMin} onValueChange={setCtcMin}>
+                  <SelectTrigger className="bg-white border-orange-200">
+                    <SelectValue placeholder="CTC min (LPA)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n}+ LPA
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-slate-600 text-sm font-medium">CTC max (LPA)</Label>
+                <Select value={ctcMax} onValueChange={setCtcMax}>
+                  <SelectTrigger className="bg-white border-orange-200">
+                    <SelectValue placeholder="CTC max (LPA)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        Up to {n} LPA
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
@@ -651,6 +809,8 @@ export default function AdminDashboardPage() {
             </div>
           </CardContent>
         </Card>
+        )}
+
       </div>
 
       <Dialog open={!!editRow} onOpenChange={(open) => !open && closeEdit()}>
