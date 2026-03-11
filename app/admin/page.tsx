@@ -194,6 +194,9 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "records">("overview");
   const [overviewSearch, setOverviewSearch] = useState("");
   const [overviewFilter, setOverviewFilter] = useState("all");
+  const [overviewIndustry, setOverviewIndustry] = useState("all");
+  const [overviewCtcMin, setOverviewCtcMin] = useState("any");
+  const [overviewCtcMax, setOverviewCtcMax] = useState("any");
 
   const fetchData = async () => {
     setLoading(true);
@@ -255,6 +258,14 @@ export default function AdminDashboardPage() {
     [rows]
   );
 
+  const overviewIndustryOptions = useMemo(() => {
+    const set = new Set<string>();
+    companyOffers.forEach((o) => {
+      if (o.industry?.trim()) set.add(o.industry.trim());
+    });
+    return Array.from(set).sort();
+  }, [companyOffers]);
+
   const filteredCompanyOffers = useMemo(() => {
     return companyOffers
       .filter((item) =>
@@ -265,8 +276,27 @@ export default function AdminDashboardPage() {
         if (overviewFilter === "medium") return item.offers >= 2 && item.offers <= 4;
         if (overviewFilter === "low") return item.offers === 1;
         return true;
+      })
+      .filter((item) => {
+        if (overviewIndustry && overviewIndustry !== "all") {
+          if ((item.industry ?? "").trim().toLowerCase() !== overviewIndustry.toLowerCase())
+            return false;
+        }
+        return true;
+      })
+      .filter((item) => {
+        const avg = item.averageCTC;
+        if (overviewCtcMin && overviewCtcMin !== "any") {
+          const min = parseFloat(overviewCtcMin);
+          if (!Number.isNaN(min) && avg < min) return false;
+        }
+        if (overviewCtcMax && overviewCtcMax !== "any") {
+          const max = parseFloat(overviewCtcMax);
+          if (!Number.isNaN(max) && avg > max) return false;
+        }
+        return true;
       });
-  }, [companyOffers, overviewSearch, overviewFilter]);
+  }, [companyOffers, overviewSearch, overviewFilter, overviewIndustry, overviewCtcMin, overviewCtcMax]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
@@ -553,8 +583,8 @@ export default function AdminDashboardPage() {
                   </CardTitle>
                   <Badge className="bg-orange-600">Total: {placementStats.totalPlaced}</Badge>
                 </div>
-                <div className="flex gap-3 mt-4">
-                  <div className="relative flex-1">
+                <div className="flex flex-wrap gap-3 mt-4">
+                  <div className="relative flex-1 min-w-[200px]">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
                       placeholder="Search companies..."
@@ -565,13 +595,54 @@ export default function AdminDashboardPage() {
                   </div>
                   <Select value={overviewFilter} onValueChange={setOverviewFilter}>
                     <SelectTrigger className="w-[180px] bg-white border-orange-200">
-                      <SelectValue placeholder="Filter" />
+                      <SelectValue placeholder="Offers" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All companies</SelectItem>
                       <SelectItem value="high">High (5+)</SelectItem>
                       <SelectItem value="medium">Medium (2–4)</SelectItem>
                       <SelectItem value="low">Single offer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {overviewIndustryOptions.length > 0 && (
+                    <Select value={overviewIndustry} onValueChange={setOverviewIndustry}>
+                      <SelectTrigger className="w-[180px] bg-white border-orange-200">
+                        <SelectValue placeholder="Industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All industries</SelectItem>
+                        {overviewIndustryOptions.map((i) => (
+                          <SelectItem key={i} value={i}>
+                            {i}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Select value={overviewCtcMin} onValueChange={setOverviewCtcMin}>
+                    <SelectTrigger className="w-[140px] bg-white border-orange-200">
+                      <SelectValue placeholder="CTC min" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any min</SelectItem>
+                      {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}+ LPA
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={overviewCtcMax} onValueChange={setOverviewCtcMax}>
+                    <SelectTrigger className="w-[140px] bg-white border-orange-200">
+                      <SelectValue placeholder="CTC max" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="any">Any max</SelectItem>
+                      {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          Up to {n} LPA
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
