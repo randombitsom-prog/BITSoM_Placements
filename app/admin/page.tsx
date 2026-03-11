@@ -348,15 +348,14 @@ export default function AdminDashboardPage() {
             </div>
           </div>
           <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="border-orange-300 text-orange-700"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+            variant="outline"
+            size="sm"
+            onClick={handleLogout}
+            className="border-orange-300 text-orange-700"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Logout
+          </Button>
         </div>
       </header>
 
