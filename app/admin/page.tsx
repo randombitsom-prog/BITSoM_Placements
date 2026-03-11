@@ -69,8 +69,8 @@ export default function AdminDashboardPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCompany, setFilterCompany] = useState("all");
   const [filterIndustry, setFilterIndustry] = useState("all");
-  const [ctcMin, setCtcMin] = useState("");
-  const [ctcMax, setCtcMax] = useState("");
+  const [ctcMin, setCtcMin] = useState("any");
+  const [ctcMax, setCtcMax] = useState("any");
   const [editRow, setEditRow] = useState<RowWithIndex | null>(null);
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -175,11 +175,11 @@ export default function AdminDashboardPage() {
       if (filterIndustry && filterIndustry !== "all") {
         if (industry !== filterIndustry.toLowerCase()) return false;
       }
-      if (ctcMin !== "") {
+      if (ctcMin && ctcMin !== "any") {
         const min = parseFloat(ctcMin);
         if (!Number.isNaN(min) && ctc < min) return false;
       }
-      if (ctcMax !== "") {
+      if (ctcMax && ctcMax !== "any") {
         const max = parseFloat(ctcMax);
         if (!Number.isNaN(max) && ctc > max) return false;
       }
@@ -568,7 +568,7 @@ export default function AdminDashboardPage() {
                   <SelectValue placeholder="CTC min (LPA)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value="any">Any</SelectItem>
                   {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
                     <SelectItem key={n} value={String(n)}>
                       {n}+ LPA
@@ -581,7 +581,7 @@ export default function AdminDashboardPage() {
                   <SelectValue placeholder="CTC max (LPA)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any</SelectItem>
+                  <SelectItem value="any">Any</SelectItem>
                   {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
                     <SelectItem key={n} value={String(n)}>
                       Up to {n} LPA
