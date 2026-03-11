@@ -1,50 +1,34 @@
-import { NextRequest } from "next/server";
 import { google } from "googleapis";
-import {
-  decryptRefreshToken,
-  GOOGLE_SHEETS_REFRESH_COOKIE,
-} from "./google-sheets-oauth";
 
 export const SHEET_ID =
   process.env.NEXT_PUBLIC_BITSOM_SHEET_ID ||
   process.env.BITSOM_SHEET_ID ||
   "1sNESQWi2MQlIXuJ99zshKkFGw3bIoG7IgbYizqaaRIo";
 
-function getRedirectUri(): string {
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || "";
-  const origin = base.startsWith("http") ? base : base ? `https://${base}` : "";
-  return origin ? `${origin}/api/auth/google/callback` : "";
-}
-
 /**
- * Returns an OAuth2 client for Sheets API using the refresh token stored in the request cookie.
- * Use this in admin sheet API routes; requires admin to have completed "Connect Google account".
+ * Returns Google Auth for Sheets API using service account credentials.
+ * Set GOOGLE_SHEETS_CREDENTIALS (JSON string) or GOOGLE_APPLICATION_CREDENTIALS (path to JSON).
  */
-export async function getSheetsAuthFromRequest(
-  request: NextRequest
-): Promise<InstanceType<typeof google.auth.OAuth2> | null> {
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = getRedirectUri();
-  if (!clientId || !clientSecret || !redirectUri) return null;
-
-  const cookie = request.cookies.get(GOOGLE_SHEETS_REFRESH_COOKIE)?.value;
-  if (!cookie) return null;
-
-  const refreshToken = decryptRefreshToken(cookie);
-  if (!refreshToken) return null;
-
-  const OAuth2 = google.auth.OAuth2;
-  const client = new OAuth2(clientId, clientSecret, redirectUri);
-  client.setCredentials({ refresh_token: refreshToken });
-  return client;
+function getSheetsAuth(): ReturnType<typeof google.auth.GoogleAuth> {
+  const credsJson = process.env.GOOGLE_SHEETS_CREDENTIALS;
+  if (credsJson) {
+    try {
+      const credentials = JSON.parse(credsJson);
+      return new google.auth.GoogleAuth({
+        credentials,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+      });
+    } catch (e) {
+      console.error("Invalid GOOGLE_SHEETS_CREDENTIALS JSON", e);
+    }
+  }
+  return new google.auth.GoogleAuth({
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+  });
 }
 
-export function getSheetsClient(
-  auth: InstanceType<typeof google.auth.OAuth2>
-) {
-  return google.sheets({ version: "v4", auth });
+export function getSheetsClient() {
+  return google.sheets({ version: "v4", auth: getSheetsAuth() });
 }
 
 export function columnLetter(index: number): string {

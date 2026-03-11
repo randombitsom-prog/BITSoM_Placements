@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -47,9 +47,6 @@ import {
   ChevronUp,
   Globe,
   Loader2,
-  Link2,
-  CheckCircle,
-  AlertCircle,
 } from "lucide-react";
 
 type RowWithIndex = SheetRow & { __index: number };
@@ -64,7 +61,6 @@ const normalizeNumber = (value: string | number | undefined): number => {
 
 export default function AdminDashboardPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [rows, setRows] = useState<RowWithIndex[]>([]);
   const [columns, setColumns] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,8 +88,6 @@ export default function AdminDashboardPage() {
     text: string;
     details?: Record<string, string>;
   } | null>(null);
-  const [googleSheetsConnected, setGoogleSheetsConnected] = useState<boolean | null>(null);
-  const [googleError, setGoogleError] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -117,21 +111,6 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     fetchData();
   }, []);
-
-  useEffect(() => {
-    fetch("/api/auth/google/session")
-      .then((r) => (r.ok ? r.json() : { connected: false }))
-      .then((data) => setGoogleSheetsConnected(!!data.connected))
-      .catch(() => setGoogleSheetsConnected(false));
-  }, []);
-
-  useEffect(() => {
-    const err = searchParams.get("google_error");
-    if (err === "no_refresh_token") setGoogleError("Google did not return a refresh token. Try again and ensure you grant all requested permissions.");
-    else if (err === "token_exchange_failed") setGoogleError("Google sign-in failed. Try again.");
-    else if (err) setGoogleError("Google sign-in failed.");
-    if (err) router.replace("/admin", { scroll: false });
-  }, [searchParams, router]);
 
   const statusOptions = useMemo(() => {
     const set = new Set<string>();
@@ -368,23 +347,7 @@ export default function AdminDashboardPage() {
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            {googleSheetsConnected === false && (
-              <a
-                href="/api/auth/google"
-                className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 bg-white border border-orange-200 rounded-md px-3 py-2 hover:bg-orange-50"
-              >
-                <Link2 className="h-4 w-4" />
-                Connect Google account for Sheets
-              </a>
-            )}
-            {googleSheetsConnected === true && (
-              <span className="inline-flex items-center gap-2 text-sm text-green-700">
-                <CheckCircle className="h-4 w-4" />
-                Google Sheets connected
-              </span>
-            )}
-            <Button
+          <Button
               variant="outline"
               size="sm"
               onClick={handleLogout}
@@ -396,15 +359,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </header>
-
-      {googleError && (
-        <div className="max-w-[1600px] mx-auto px-6 pt-4">
-          <div className="flex items-center gap-2 text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3">
-            <AlertCircle className="h-5 w-5 shrink-0" />
-            <p className="text-sm">{googleError}</p>
-          </div>
-        </div>
-      )}
 
       <div className="max-w-[1600px] mx-auto p-6 space-y-6">
         {hasIndustryColumn && (

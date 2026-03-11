@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX } from 'lucide-react';
+import Link from 'next/link';
+import { Search, TrendingUp, Users, Building2, IndianRupee, Award, Briefcase, UserCheck, UserX, LogIn } from 'lucide-react';
 import Image from 'next/image';
 
 type PlacementStats = {
@@ -218,7 +219,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
       {/* Header */}
       <header className="bg-white/80 border-b border-orange-200 shadow-lg backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-[1400px] mx-auto px-6 py-4">
+        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="p-2 bg-white rounded-lg shadow-md">
               <Image 
@@ -229,7 +230,7 @@ export default function Dashboard() {
                 className="h-10 w-auto"
               />
             </div>
-            <div className="flex-1">
+            <div>
               <h1 className="text-2xl bg-gradient-to-r from-slate-800 to-orange-700 bg-clip-text text-transparent">
                 BITSoM Placement Dashboard
               </h1>
@@ -239,6 +240,15 @@ export default function Dashboard() {
               <p className="text-xs text-slate-500 mt-1">Batch of 2026</p>
             </div>
           </div>
+          <Link href="/admin/login">
+            <Button
+              variant="outline"
+              className="border-orange-300 text-orange-700 hover:bg-orange-50 hover:border-orange-400"
+            >
+              <LogIn className="h-4 w-4 mr-2" />
+              Login as Admin
+            </Button>
+          </Link>
         </div>
       </header>
 

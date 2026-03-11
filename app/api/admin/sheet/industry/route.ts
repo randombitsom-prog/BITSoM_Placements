@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import {
   SHEET_ID,
-  getSheetsAuthFromRequest,
   getSheetsClient,
   columnLetter,
 } from "@/lib/google-sheets";
@@ -15,17 +14,6 @@ export async function POST(request: NextRequest) {
   const ok = await isAdminAuthenticated();
   if (!ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const auth = await getSheetsAuthFromRequest(request);
-  if (!auth) {
-    return NextResponse.json(
-      {
-        error:
-          "Connect your Google account first (Admin → Connect Google account for Sheets).",
-      },
-      { status: 503 }
-    );
   }
 
   let body: { updates: Record<string, string> };
@@ -59,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const sheets = getSheetsClient(auth);
+    const sheets = getSheetsClient();
 
     const spreadsheet = await sheets.spreadsheets.get({
       spreadsheetId: SHEET_ID,
