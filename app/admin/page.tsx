@@ -67,8 +67,8 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterCompany, setFilterCompany] = useState("");
-  const [filterIndustry, setFilterIndustry] = useState("");
+  const [filterCompany, setFilterCompany] = useState("all");
+  const [filterIndustry, setFilterIndustry] = useState("all");
   const [ctcMin, setCtcMin] = useState("");
   const [ctcMax, setCtcMax] = useState("");
   const [editRow, setEditRow] = useState<RowWithIndex | null>(null);
@@ -169,10 +169,12 @@ export default function AdminDashboardPage() {
       if (filterStatus && filterStatus !== "all") {
         if (!status.includes(filterStatus.toLowerCase())) return false;
       }
-      if (filterCompany && !company.includes(filterCompany.toLowerCase()))
-        return false;
-      if (filterIndustry && !industry.includes(filterIndustry.toLowerCase()))
-        return false;
+      if (filterCompany && filterCompany !== "all") {
+        if (company !== filterCompany.toLowerCase()) return false;
+      }
+      if (filterIndustry && filterIndustry !== "all") {
+        if (industry !== filterIndustry.toLowerCase()) return false;
+      }
       if (ctcMin !== "") {
         const min = parseFloat(ctcMin);
         if (!Number.isNaN(min) && ctc < min) return false;
@@ -510,7 +512,7 @@ export default function AdminDashboardPage() {
               Filter and edit data. Changes are saved to the Google Sheet.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mt-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -533,36 +535,60 @@ export default function AdminDashboardPage() {
                   ))}
                 </SelectContent>
               </Select>
-              <Input
-                placeholder="Filter by company"
-                value={filterCompany}
-                onChange={(e) => setFilterCompany(e.target.value)}
-                className="bg-white border-orange-200"
-              />
+              <Select value={filterCompany} onValueChange={setFilterCompany}>
+                <SelectTrigger className="bg-white border-orange-200">
+                  <SelectValue placeholder="Company" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All companies</SelectItem>
+                  {companyOptions.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {industryOptions.length > 0 && (
-                <Input
-                  placeholder="Filter by industry"
-                  value={filterIndustry}
-                  onChange={(e) => setFilterIndustry(e.target.value)}
-                  className="bg-white border-orange-200"
-                />
+                <Select value={filterIndustry} onValueChange={setFilterIndustry}>
+                  <SelectTrigger className="bg-white border-orange-200">
+                    <SelectValue placeholder="Industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All industries</SelectItem>
+                    {industryOptions.map((i) => (
+                      <SelectItem key={i} value={i}>
+                        {i}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder="CTC min"
-                  value={ctcMin}
-                  onChange={(e) => setCtcMin(e.target.value)}
-                  className="bg-white border-orange-200"
-                />
-                <Input
-                  type="number"
-                  placeholder="CTC max"
-                  value={ctcMax}
-                  onChange={(e) => setCtcMax(e.target.value)}
-                  className="bg-white border-orange-200"
-                />
-              </div>
+              <Select value={ctcMin} onValueChange={setCtcMin}>
+                <SelectTrigger className="bg-white border-orange-200">
+                  <SelectValue placeholder="CTC min (LPA)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any</SelectItem>
+                  {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}+ LPA
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={ctcMax} onValueChange={setCtcMax}>
+                <SelectTrigger className="bg-white border-orange-200">
+                  <SelectValue placeholder="CTC max (LPA)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any</SelectItem>
+                  {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      Up to {n} LPA
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </CardHeader>
           <CardContent className="p-0">
