@@ -47,8 +47,6 @@ import {
   IndianRupee,
   TrendingUp,
   Briefcase,
-  UserCheck,
-  UserX,
   BarChart3,
   List,
 } from "lucide-react";
@@ -185,6 +183,7 @@ export default function AdminDashboardPage() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCompany, setFilterCompany] = useState("all");
   const [filterIndustry, setFilterIndustry] = useState("all");
+  const [filterYoe, setFilterYoe] = useState("all");
   const [ctcMin, setCtcMin] = useState("any");
   const [ctcMax, setCtcMax] = useState("any");
   const [editRow, setEditRow] = useState<RowWithIndex | null>(null);
@@ -194,9 +193,13 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "records">("overview");
   const [overviewSearch, setOverviewSearch] = useState("");
   const [overviewFilter, setOverviewFilter] = useState("all");
+  const [overviewCompany, setOverviewCompany] = useState("all");
   const [overviewIndustry, setOverviewIndustry] = useState("all");
   const [overviewCtcMin, setOverviewCtcMin] = useState("any");
   const [overviewCtcMax, setOverviewCtcMax] = useState("any");
+  const [breakdownFilter, setBreakdownFilter] = useState<
+    "ppo" | "campus" | "off" | "total" | null
+  >(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -248,29 +251,103 @@ export default function AdminDashboardPage() {
     return Array.from(set).sort();
   }, [rows]);
 
+  const yoeColumn = useMemo(() => {
+    return columns.find(
+      (c) =>
+        /^yoe$/i.test(c?.trim() ?? "") ||
+        /years?\s*of\s*experience/i.test(c ?? "") ||
+        /^years$/i.test(c?.trim() ?? "")
+    ) ?? null;
+  }, [columns]);
+
+  const yoeOptions = useMemo(() => {
+    if (!yoeColumn) return [];
+    const set = new Set<string>();
+    rows.forEach((r) => {
+      const v = String(r[yoeColumn] ?? "").trim();
+      if (v) set.add(v);
+    });
+    return Array.from(set).sort();
+  }, [rows, yoeColumn]);
+
   const placementStats = useMemo(
     () => buildStatsFromRows(rows),
     [rows]
   );
+
+  type IndustryStat = {
+    industry: string;
+    totalPlaced: number;
+    avgCtc: number;
+    medianCtc: number;
+    minCtc: number;
+    maxCtc: number;
+  };
+
+  const industryStats = useMemo((): IndustryStat[] => {
+    const industryKey = columns.find(
+      (c) => (c ?? "").toLowerCase() === "industry"
+    ) ?? "Industry";
+    const byIndustry = new Map<
+      string,
+      { count: number; ctcs: number[] }
+    >();
+    rows.forEach((row) => {
+      const status = String(row["Status"] ?? row["status"] ?? "").toLowerCase();
+      const isPlaced =
+        status.includes("ppo") ||
+        status.includes("campus") ||
+        status.includes("off");
+      if (!isPlaced) return;
+      const industry = String(row[industryKey] ?? "").trim() || "—";
+      const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
+      const entry = byIndustry.get(industry) ?? { count: 0, ctcs: [] };
+      entry.count += 1;
+      if (!Number.isNaN(ctc)) entry.ctcs.push(ctc);
+      byIndustry.set(industry, entry);
+    });
+    return Array.from(byIndustry.entries())
+      .map(([industry, { count, ctcs }]) => {
+        const sorted = [...ctcs].sort((a, b) => a - b);
+        const n = sorted.length;
+        const medianCtc =
+          n === 0
+            ? 0
+            : n % 2 === 1
+              ? sorted[Math.floor(n / 2)]
+              : (sorted[n / 2 - 1] + sorted[n / 2]) / 2;
+        const avgCtc =
+          n === 0 ? 0 : sorted.reduce((s, v) => s + v, 0) / n;
+        const minCtc = n === 0 ? 0 : sorted[0];
+        const maxCtc = n === 0 ? 0 : sorted[n - 1];
+        return {
+          industry,
+          totalPlaced: count,
+          avgCtc: parseFloat(avgCtc.toFixed(2)),
+          medianCtc: parseFloat(medianCtc.toFixed(2)),
+          minCtc,
+          maxCtc,
+        };
+      })
+      .sort((a, b) => b.totalPlaced - a.totalPlaced);
+  }, [rows, columns]);
 
   const companyOffers = useMemo(
     () => buildCompanyOffers(rows),
     [rows]
   );
 
-  const overviewIndustryOptions = useMemo(() => {
-    const set = new Set<string>();
-    companyOffers.forEach((o) => {
-      if (o.industry?.trim()) set.add(o.industry.trim());
-    });
-    return Array.from(set).sort();
-  }, [companyOffers]);
-
   const filteredCompanyOffers = useMemo(() => {
     return companyOffers
       .filter((item) =>
         item.company.toLowerCase().includes(overviewSearch.toLowerCase())
       )
+      .filter((item) => {
+        if (overviewCompany && overviewCompany !== "all") {
+          if (item.company !== overviewCompany) return false;
+        }
+        return true;
+      })
       .filter((item) => {
         if (overviewFilter === "high") return item.offers >= 5;
         if (overviewFilter === "medium") return item.offers >= 2 && item.offers <= 4;
@@ -296,7 +373,7 @@ export default function AdminDashboardPage() {
         }
         return true;
       });
-  }, [companyOffers, overviewSearch, overviewFilter, overviewIndustry, overviewCtcMin, overviewCtcMax]);
+  }, [companyOffers, overviewSearch, overviewCompany, overviewFilter, overviewIndustry, overviewCtcMin, overviewCtcMax]);
 
   const filteredRows = useMemo(() => {
     return rows.filter((row) => {
@@ -306,6 +383,17 @@ export default function AdminDashboardPage() {
         row["Industry"] ?? row["industry"] ?? ""
       ).toLowerCase();
       const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
+
+      if (breakdownFilter) {
+        const isPpo = status.includes("ppo");
+        const isOff = status.includes("off");
+        const isCampus = status.includes("campus") && !isPpo && !isOff;
+        const isPlaced = isPpo || isOff || isCampus;
+        if (breakdownFilter === "ppo" && !isPpo) return false;
+        if (breakdownFilter === "off" && !isOff) return false;
+        if (breakdownFilter === "campus" && !isCampus) return false;
+        if (breakdownFilter === "total" && !isPlaced) return false;
+      }
 
       if (search) {
         const searchLower = search.toLowerCase();
@@ -324,6 +412,10 @@ export default function AdminDashboardPage() {
       if (filterIndustry && filterIndustry !== "all") {
         if (industry !== filterIndustry.toLowerCase()) return false;
       }
+      if (filterYoe && filterYoe !== "all" && yoeColumn) {
+        const rowYoe = String(row[yoeColumn] ?? "").trim().toLowerCase();
+        if (rowYoe !== filterYoe.toLowerCase()) return false;
+      }
       if (ctcMin && ctcMin !== "any") {
         const min = parseFloat(ctcMin);
         if (!Number.isNaN(min) && ctc < min) return false;
@@ -336,10 +428,13 @@ export default function AdminDashboardPage() {
     });
   }, [
     rows,
+    breakdownFilter,
     search,
     filterStatus,
     filterCompany,
     filterIndustry,
+    filterYoe,
+    yoeColumn,
     ctcMin,
     ctcMax,
     columns,
@@ -382,7 +477,7 @@ export default function AdminDashboardPage() {
       }
       closeEdit();
       await fetchData();
-    } catch (e) {
+    } catch {
       setSaveError("Network error. Please try again.");
     } finally {
       setSaving(false);
@@ -463,62 +558,98 @@ export default function AdminDashboardPage() {
           <div className="space-y-6">
             {/* Key stats cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                  <CardTitle className="text-sm text-orange-100">Total Placed</CardTitle>
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <Users className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="text-4xl text-white mb-1">{placementStats.totalPlaced}</div>
-                  <p className="text-xs text-orange-100">
-                    Campus: {placementStats.campusPlaced} • Off: {placementStats.offCampusPlaced}
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                  <CardTitle className="text-sm text-blue-100">PPO&apos;s</CardTitle>
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <Award className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="text-4xl text-white mb-1">{placementStats.ppos}</div>
-                  <p className="text-xs text-blue-100">Pre-Placement Offers</p>
-                </CardContent>
-              </Card>
-              <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                  <CardTitle className="text-sm text-emerald-100">Average CTC</CardTitle>
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <IndianRupee className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="text-4xl text-white mb-1">
-                    {placementStats.averageCTC} <span className="text-xl">LPA</span>
-                  </div>
-                  <p className="text-xs text-emerald-100">
-                    Range: {placementStats.lowestCTC} – {placementStats.highestCTC} LPA
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-lg">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                  <CardTitle className="text-sm text-purple-100">Highest CTC</CardTitle>
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <TrendingUp className="h-5 w-5 text-white" />
-                  </div>
-                </CardHeader>
-                <CardContent className="relative z-10">
-                  <div className="text-4xl text-white mb-1">
-                    {placementStats.highestCTC} <span className="text-xl">LPA</span>
-                  </div>
-                  <p className="text-xs text-purple-100">Top package</p>
-                </CardContent>
-              </Card>
+              <button
+                type="button"
+                onClick={() => {
+                  setBreakdownFilter("total");
+                  setActiveTab("records");
+                }}
+                className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2"
+              >
+                <Card className="relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 border-0 shadow-none h-full">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-sm text-orange-100">Total Placed</CardTitle>
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Users className="h-5 w-5 text-white" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="text-4xl text-white mb-1">{placementStats.totalPlaced}</div>
+                    <p className="text-xs text-orange-100">
+                      Campus: {placementStats.campusPlaced} • Off: {placementStats.offCampusPlaced}
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBreakdownFilter("ppo");
+                  setActiveTab("records");
+                }}
+                className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+              >
+                <Card className="relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-none h-full">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-sm text-blue-100">PPO&apos;s</CardTitle>
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Award className="h-5 w-5 text-white" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="text-4xl text-white mb-1">{placementStats.ppos}</div>
+                    <p className="text-xs text-blue-100">Pre-Placement Offers</p>
+                  </CardContent>
+                </Card>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBreakdownFilter("total");
+                  setActiveTab("records");
+                }}
+                className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-emerald-300 focus:ring-offset-2"
+              >
+                <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500 to-emerald-600 border-0 shadow-none h-full">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-sm text-emerald-100">Average CTC</CardTitle>
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <IndianRupee className="h-5 w-5 text-white" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="text-4xl text-white mb-1">
+                      {placementStats.averageCTC} <span className="text-xl">LPA</span>
+                    </div>
+                    <p className="text-xs text-emerald-100">
+                      Range: {placementStats.lowestCTC} – {placementStats.highestCTC} LPA
+                    </p>
+                  </CardContent>
+                </Card>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setBreakdownFilter("total");
+                  setActiveTab("records");
+                }}
+                className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2"
+              >
+                <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-none h-full">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                    <CardTitle className="text-sm text-purple-100">Highest CTC</CardTitle>
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <TrendingUp className="h-5 w-5 text-white" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="relative z-10">
+                    <div className="text-4xl text-white mb-1">
+                      {placementStats.highestCTC} <span className="text-xl">LPA</span>
+                    </div>
+                    <p className="text-xs text-purple-100">Top package</p>
+                  </CardContent>
+                </Card>
+              </button>
             </div>
 
             {/* Placement breakdown + metrics */}
@@ -529,24 +660,106 @@ export default function AdminDashboardPage() {
                     <Briefcase className="h-5 w-5 text-orange-600" />
                     Placement Breakdown
                   </CardTitle>
+                  <p className="text-sm text-slate-500 font-normal mt-1">
+                    Click a category to view those students in Individual records.
+                  </p>
                 </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="pt-6 space-y-6">
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("ppo");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer text-left"
+                    >
                       <span className="text-slate-700">PPO&apos;s</span>
                       <Badge className="bg-blue-600">{placementStats.ppos}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg">
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("campus");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 hover:border-green-300 transition-colors cursor-pointer text-left"
+                    >
                       <span className="text-slate-700">Campus Placed</span>
                       <Badge className="bg-green-600">{placementStats.campusPlaced}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("off");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 hover:border-emerald-300 transition-colors cursor-pointer text-left"
+                    >
                       <span className="text-slate-700">Off Campus Placed</span>
                       <Badge className="bg-emerald-600">{placementStats.offCampusPlaced}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("total");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 hover:border-orange-300 transition-colors cursor-pointer text-left"
+                    >
                       <span className="text-slate-700">Total Placed</span>
                       <Badge className="bg-orange-600">{placementStats.totalPlaced}</Badge>
+                    </button>
+                  </div>
+
+                  {/* Stats by Industry */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-slate-800 mb-3">Stats by Industry</h4>
+                    <div className="max-h-[320px] overflow-auto border border-orange-100 rounded-lg">
+                      <Table>
+                        <TableHeader className="bg-orange-50/80">
+                          <TableRow className="border-orange-200">
+                            <TableHead className="text-slate-700 text-xs">Industry</TableHead>
+                            <TableHead className="text-right text-slate-700 text-xs">Placed</TableHead>
+                            <TableHead className="text-right text-slate-700 text-xs">Avg CTC</TableHead>
+                            <TableHead className="text-right text-slate-700 text-xs">Median CTC</TableHead>
+                            <TableHead className="text-right text-slate-700 text-xs">Min CTC</TableHead>
+                            <TableHead className="text-right text-slate-700 text-xs">Highest CTC</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {industryStats.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={6} className="text-center text-slate-500 text-sm py-4">
+                                No industry data
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            industryStats.map((s, idx) => (
+                              <TableRow key={idx} className="border-orange-100">
+                                <TableCell className="text-slate-700 font-medium text-sm py-2">
+                                  {s.industry}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-600 text-sm py-2">
+                                  {s.totalPlaced}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-600 text-sm py-2">
+                                  {s.avgCtc > 0 ? `${s.avgCtc} LPA` : "—"}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-600 text-sm py-2">
+                                  {s.medianCtc > 0 ? `${s.medianCtc} LPA` : "—"}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-600 text-sm py-2">
+                                  {s.minCtc > 0 ? `${s.minCtc} LPA` : "—"}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-600 text-sm py-2">
+                                  {s.maxCtc > 0 ? `${s.maxCtc} LPA` : "—"}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 </CardContent>
@@ -593,6 +806,19 @@ export default function AdminDashboardPage() {
                       className="pl-9 bg-white border-orange-200"
                     />
                   </div>
+                  <Select value={overviewCompany} onValueChange={setOverviewCompany}>
+                    <SelectTrigger className="w-[200px] bg-white border-orange-200">
+                      <SelectValue placeholder="Company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All companies</SelectItem>
+                      {companyOptions.map((c) => (
+                        <SelectItem key={c} value={c}>
+                          {c}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <Select value={overviewFilter} onValueChange={setOverviewFilter}>
                     <SelectTrigger className="w-[180px] bg-white border-orange-200">
                       <SelectValue placeholder="Offers" />
@@ -604,14 +830,14 @@ export default function AdminDashboardPage() {
                       <SelectItem value="low">Single offer</SelectItem>
                     </SelectContent>
                   </Select>
-                  {overviewIndustryOptions.length > 0 && (
+                  {industryOptions.length > 0 && (
                     <Select value={overviewIndustry} onValueChange={setOverviewIndustry}>
-                      <SelectTrigger className="w-[180px] bg-white border-orange-200">
+                      <SelectTrigger className="w-[200px] bg-white border-orange-200">
                         <SelectValue placeholder="Industry" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All industries</SelectItem>
-                        {overviewIndustryOptions.map((i) => (
+                        {industryOptions.map((i) => (
                           <SelectItem key={i} value={i}>
                             {i}
                           </SelectItem>
@@ -621,10 +847,10 @@ export default function AdminDashboardPage() {
                   )}
                   <Select value={overviewCtcMin} onValueChange={setOverviewCtcMin}>
                     <SelectTrigger className="w-[140px] bg-white border-orange-200">
-                      <SelectValue placeholder="CTC min" />
+                      <SelectValue placeholder="CTC Min" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="any">Any min</SelectItem>
+                      <SelectItem value="any">CTC Min</SelectItem>
                       {[0, 5, 10, 15, 20, 25, 30, 40, 50].map((n) => (
                         <SelectItem key={n} value={String(n)}>
                           {n}+ LPA
@@ -634,10 +860,10 @@ export default function AdminDashboardPage() {
                   </Select>
                   <Select value={overviewCtcMax} onValueChange={setOverviewCtcMax}>
                     <SelectTrigger className="w-[140px] bg-white border-orange-200">
-                      <SelectValue placeholder="CTC max" />
+                      <SelectValue placeholder="CTC Max" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="any">Any max</SelectItem>
+                      <SelectItem value="any">CTC Max</SelectItem>
                       {[10, 15, 20, 25, 30, 40, 50, 100].map((n) => (
                         <SelectItem key={n} value={String(n)}>
                           Up to {n} LPA
@@ -723,6 +949,30 @@ export default function AdminDashboardPage() {
               Filter and edit data. Changes are saved to the Google Sheet.
             </p>
 
+            {breakdownFilter && (
+              <div className="mt-4 flex items-center justify-between gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <span className="text-sm text-slate-700">
+                  Showing only:{" "}
+                  <strong>
+                    {breakdownFilter === "ppo" && "PPO's"}
+                    {breakdownFilter === "campus" && "Campus Placed"}
+                    {breakdownFilter === "off" && "Off Campus Placed"}
+                    {breakdownFilter === "total" && "Total Placed"}
+                  </strong>{" "}
+                  ({filteredRows.length} student{filteredRows.length !== 1 ? "s" : ""})
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setBreakdownFilter(null)}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                >
+                  Show all records
+                </Button>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mt-4">
               <div className="space-y-1.5">
                 <Label className="text-slate-600 text-sm font-medium">Search</Label>
@@ -780,6 +1030,24 @@ export default function AdminDashboardPage() {
                       {industryOptions.map((i) => (
                         <SelectItem key={i} value={i}>
                           {i}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {yoeOptions.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-slate-600 text-sm font-medium">YoE</Label>
+                  <Select value={filterYoe} onValueChange={setFilterYoe}>
+                    <SelectTrigger className="bg-white border-orange-200">
+                      <SelectValue placeholder="YoE" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All YoE</SelectItem>
+                      {yoeOptions.map((y) => (
+                        <SelectItem key={y} value={y}>
+                          {y}
                         </SelectItem>
                       ))}
                     </SelectContent>
