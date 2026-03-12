@@ -356,7 +356,8 @@ export default function AdminDashboardPage() {
         status.includes("campus") ||
         status.includes("off");
       if (!isPlaced) return;
-      const industry = String(row[industryKey] ?? "").trim() || "—";
+      const raw = String(row[industryKey] ?? "").replace(/\s+/g, " ").trim();
+      const industry = raw.length > 0 ? raw : "Unspecified";
       const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
       const entry = byIndustry.get(industry) ?? { count: 0, ctcs: [] };
       entry.count += 1;
@@ -459,7 +460,11 @@ export default function AdminDashboardPage() {
       }
       if (selectedIndustryFilter) {
         const rowIndustry = String(row["Industry"] ?? row["industry"] ?? "").trim();
-        if (rowIndustry.toLowerCase() !== selectedIndustryFilter.toLowerCase()) return false;
+        const matchUnspecified =
+          selectedIndustryFilter.toLowerCase() === "unspecified" && rowIndustry === "";
+        const matchNamed =
+          rowIndustry.toLowerCase() === selectedIndustryFilter.toLowerCase();
+        if (!matchUnspecified && !matchNamed) return false;
       }
 
       if (search) {
@@ -872,70 +877,88 @@ export default function AdminDashboardPage() {
                   </p>
                   {industryStats.length > 0 ? (
                     <>
-                      <div className="h-[280px] w-full">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={industryStats.map((s) => ({
-                                name: s.industry || "—",
-                                value: s.totalPlaced,
-                              }))}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={100}
-                              paddingAngle={2}
-                              dataKey="value"
-                              onClick={(data: { name?: string; value?: number }) => {
-                                if (data?.name != null) {
-                                  const industry = industryStats.find(
-                                    (s) => (s.industry || "—") === data.name
-                                  )?.industry ?? data.name;
-                                  setSelectedIndustryFilter(industry === "—" ? null : industry);
-                                  setActiveTab("records");
-                                }
-                              }}
-                              style={{ cursor: "pointer" }}
+                      <div className="h-[380px] w-full flex gap-4">
+                        <div className="flex-1 min-w-0" style={{ minHeight: 340 }}>
+                          <ResponsiveContainer width="100%" height={340}>
+                            <PieChart
+                              margin={{ top: 16, right: 220, bottom: 16, left: 16 }}
                             >
-                              {industryStats.map((s, idx) => {
-                                const name = s.industry || "—";
-                                const isSelected =
-                                  selectedIndustryFilter != null &&
-                                  name.toLowerCase() === selectedIndustryFilter.toLowerCase();
-                                const COLORS = [
-                                  "#ea580c",
-                                  "#2563eb",
-                                  "#16a34a",
-                                  "#ca8a04",
-                                  "#9333ea",
-                                  "#0891b2",
-                                  "#dc2626",
-                                  "#64748b",
-                                ];
-                                return (
-                                  <Cell
-                                    key={idx}
-                                    fill={COLORS[idx % COLORS.length]}
-                                    opacity={isSelected ? 1 : 0.85}
-                                    stroke={isSelected ? "#0f172a" : undefined}
-                                    strokeWidth={isSelected ? 2 : 0}
-                                  />
-                                );
-                              })}
-                            </Pie>
-                            <RechartsTooltip
-                              formatter={(value: number, name: string) => {
-                                const pct =
-                                  placementStats.totalPlaced > 0
-                                    ? ((value / placementStats.totalPlaced) * 100).toFixed(1)
-                                    : "0";
-                                return `${name}: ${value} placed (${pct}%)`;
-                              }}
-                              contentStyle={{ borderRadius: "8px", border: "1px solid #fed7aa" }}
-                            />
-                            <Legend />
-                          </PieChart>
-                        </ResponsiveContainer>
+                              <Pie
+                                data={industryStats.map((s) => ({
+                                  name: (s.industry && String(s.industry).trim()) || "Unspecified",
+                                  value: s.totalPlaced,
+                                }))}
+                                cx="40%"
+                                cy="50%"
+                                innerRadius={52}
+                                outerRadius={88}
+                                paddingAngle={1.5}
+                                dataKey="value"
+                                onClick={(data: { name?: string; value?: number }) => {
+                                  if (data?.name != null) {
+                                    const industry = industryStats.find(
+                                      (s) => ((s.industry && String(s.industry).trim()) || "Unspecified") === data.name
+                                    )?.industry ?? data.name;
+                                    setSelectedIndustryFilter(industry);
+                                    setActiveTab("records");
+                                  }
+                                }}
+                                style={{ cursor: "pointer" }}
+                              >
+                                {industryStats.map((s, idx) => {
+                                  const name = (s.industry && String(s.industry).trim()) || "Unspecified";
+                                  const isSelected =
+                                    selectedIndustryFilter != null &&
+                                    name.toLowerCase() === selectedIndustryFilter.toLowerCase();
+                                  const COLORS = [
+                                    "#ea580c",
+                                    "#2563eb",
+                                    "#16a34a",
+                                    "#ca8a04",
+                                    "#9333ea",
+                                    "#0891b2",
+                                    "#dc2626",
+                                    "#64748b",
+                                  ];
+                                  return (
+                                    <Cell
+                                      key={idx}
+                                      fill={COLORS[idx % COLORS.length]}
+                                      opacity={isSelected ? 1 : 0.88}
+                                      stroke={isSelected ? "#0f172a" : "rgba(255,255,255,0.6)"}
+                                      strokeWidth={isSelected ? 2 : 1}
+                                    />
+                                  );
+                                })}
+                              </Pie>
+                              <RechartsTooltip
+                                formatter={(value: number, name: string) => {
+                                  const pct =
+                                    placementStats.totalPlaced > 0
+                                      ? ((value / placementStats.totalPlaced) * 100).toFixed(1)
+                                      : "0";
+                                  return `${name}: ${value} placed (${pct}%)`;
+                                }}
+                                contentStyle={{
+                                  borderRadius: "8px",
+                                  border: "1px solid #fed7aa",
+                                  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                                }}
+                              />
+                              <Legend
+                                layout="vertical"
+                                align="right"
+                                verticalAlign="middle"
+                                wrapperStyle={{ paddingLeft: 8 }}
+                                iconSize={8}
+                                iconType="circle"
+                                formatter={(value: string) =>
+                                  value && String(value).trim() ? value : "Unspecified"
+                                }
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
                       </div>
                       <div className="max-h-[320px] overflow-auto border border-orange-100 rounded-lg">
                         <Table>
@@ -951,7 +974,7 @@ export default function AdminDashboardPage() {
                           </TableHeader>
                           <TableBody>
                             {industryStats.map((s, idx) => {
-                              const name = s.industry || "—";
+                              const name = (s.industry && String(s.industry).trim()) || "Unspecified";
                               const isSelected =
                                 selectedIndustryFilter != null &&
                                 name.toLowerCase() === selectedIndustryFilter.toLowerCase();
@@ -962,12 +985,12 @@ export default function AdminDashboardPage() {
                                     isSelected ? "bg-orange-100" : ""
                                   }`}
                                   onClick={() => {
-                                    setSelectedIndustryFilter(name === "—" ? null : s.industry);
+                                    setSelectedIndustryFilter(name);
                                     setActiveTab("records");
                                   }}
                                 >
                                   <TableCell className="text-slate-700 font-medium text-sm py-2">
-                                    {s.industry}
+                                    {name}
                                   </TableCell>
                                   <TableCell className="text-right text-slate-600 text-sm py-2">
                                     {s.totalPlaced}
