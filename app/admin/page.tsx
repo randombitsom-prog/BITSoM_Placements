@@ -60,7 +60,7 @@ import {
   PieChart,
   Pie,
   Cell,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
 } from "recharts";
@@ -923,7 +923,7 @@ export default function AdminDashboardPage() {
                                 );
                               })}
                             </Pie>
-                            <Tooltip
+                            <RechartsTooltip
                               formatter={(value: number, name: string) => {
                                 const pct =
                                   placementStats.totalPlaced > 0
