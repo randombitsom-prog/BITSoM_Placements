@@ -51,6 +51,19 @@ import {
   List,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 type RowWithIndex = SheetRow & { __index: number };
 
@@ -198,8 +211,9 @@ export default function AdminDashboardPage() {
   const [overviewCtcMin, setOverviewCtcMin] = useState("any");
   const [overviewCtcMax, setOverviewCtcMax] = useState("any");
   const [breakdownFilter, setBreakdownFilter] = useState<
-    "ppo" | "campus" | "off" | "total" | null
+    "ppo" | "campus" | "off" | "total" | "ppi" | "unplaced" | null
   >(null);
+  const [selectedIndustryFilter, setSelectedIndustryFilter] = useState<string | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -270,10 +284,53 @@ export default function AdminDashboardPage() {
     return Array.from(set).sort();
   }, [rows, yoeColumn]);
 
+  const displayColumns = useMemo(() => {
+    return columns.filter((col) => {
+      const trimmed = (col ?? "").trim();
+      if (!trimmed) return false;
+      if (/^col_\d+$/.test(trimmed)) return false;
+      return true;
+    });
+  }, [columns]);
+
   const placementStats = useMemo(
     () => buildStatsFromRows(rows),
     [rows]
   );
+
+  const nameColumn = useMemo(
+    () =>
+      columns.find(
+        (c) =>
+          /^name$/i.test(c?.trim() ?? "") ||
+          /student\s*name/i.test(c ?? "") ||
+          /name\s*of\s*student/i.test(c ?? "")
+      ) ?? columns[0],
+    [columns]
+  );
+
+  const { highestCtcRows, lowestCtcRows } = useMemo(() => {
+    const high = placementStats.highestCTC;
+    const low = placementStats.lowestCTC;
+    const highest: RowWithIndex[] = [];
+    const lowest: RowWithIndex[] = [];
+    rows.forEach((row) => {
+      const ctc = normalizeNumber(row["CTC"] ?? row["ctc"]);
+      if (Number.isNaN(ctc)) return;
+      if (ctc === high) highest.push(row);
+      if (ctc === low) lowest.push(row);
+    });
+    return { highestCtcRows: highest, lowestCtcRows: lowest };
+  }, [rows, placementStats.highestCTC, placementStats.lowestCTC]);
+
+  const getRowLabel = (row: RowWithIndex) => {
+    const name = nameColumn ? String(row[nameColumn] ?? "").trim() : "";
+    const company = String(row["Company"] ?? row["company"] ?? "").trim();
+    if (name && company) return `${name} (${company})`;
+    if (name) return name;
+    if (company) return company;
+    return "—";
+  };
 
   type IndustryStat = {
     industry: string;
@@ -389,10 +446,20 @@ export default function AdminDashboardPage() {
         const isOff = status.includes("off");
         const isCampus = status.includes("campus") && !isPpo && !isOff;
         const isPlaced = isPpo || isOff || isCampus;
+        const isPpi = status.includes("ppi");
+        const isUnplaced =
+          !status ||
+          (!status.includes("ppo") && !status.includes("campus") && !status.includes("off"));
         if (breakdownFilter === "ppo" && !isPpo) return false;
         if (breakdownFilter === "off" && !isOff) return false;
         if (breakdownFilter === "campus" && !isCampus) return false;
         if (breakdownFilter === "total" && !isPlaced) return false;
+        if (breakdownFilter === "ppi" && !isPpi) return false;
+        if (breakdownFilter === "unplaced" && !isUnplaced) return false;
+      }
+      if (selectedIndustryFilter) {
+        const rowIndustry = String(row["Industry"] ?? row["industry"] ?? "").trim();
+        if (rowIndustry.toLowerCase() !== selectedIndustryFilter.toLowerCase()) return false;
       }
 
       if (search) {
@@ -429,6 +496,7 @@ export default function AdminDashboardPage() {
   }, [
     rows,
     breakdownFilter,
+    selectedIndustryFilter,
     search,
     filterStatus,
     filterCompany,
@@ -557,7 +625,7 @@ export default function AdminDashboardPage() {
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* Key stats cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <button
                 type="button"
                 onClick={() => {
@@ -627,29 +695,84 @@ export default function AdminDashboardPage() {
                   </CardContent>
                 </Card>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setBreakdownFilter("total");
-                  setActiveTab("records");
-                }}
-                className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2"
-              >
-                <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-none h-full">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
-                    <CardTitle className="text-sm text-purple-100">Highest CTC</CardTitle>
-                    <div className="p-2 bg-white/20 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-white" />
-                    </div>
-                  </CardHeader>
-                  <CardContent className="relative z-10">
-                    <div className="text-4xl text-white mb-1">
-                      {placementStats.highestCTC} <span className="text-xl">LPA</span>
-                    </div>
-                    <p className="text-xs text-purple-100">Top package</p>
-                  </CardContent>
-                </Card>
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBreakdownFilter("total");
+                      setActiveTab("records");
+                    }}
+                    className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 w-full"
+                  >
+                    <Card className="relative overflow-hidden bg-gradient-to-br from-slate-500 to-slate-600 border-0 shadow-none h-full">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                        <CardTitle className="text-sm text-slate-200">Lowest CTC</CardTitle>
+                        <div className="p-2 bg-white/20 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-white rotate-180" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="relative z-10">
+                        <div className="text-4xl text-white mb-1">
+                          {placementStats.lowestCTC} <span className="text-xl">LPA</span>
+                        </div>
+                        <p className="text-xs text-slate-200">Lowest package</p>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-medium mb-1">Lowest CTC ({placementStats.lowestCTC} LPA):</p>
+                  {lowestCtcRows.length === 0 ? (
+                    <p className="text-muted-foreground">No data</p>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-0.5 text-xs">
+                      {lowestCtcRows.map((row, i) => (
+                        <li key={i}>{getRowLabel(row)}</li>
+                      ))}
+                    </ul>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBreakdownFilter("total");
+                      setActiveTab("records");
+                    }}
+                    className="text-left cursor-pointer rounded-xl border-0 shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-300 focus:ring-offset-2 w-full"
+                  >
+                    <Card className="relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 border-0 shadow-none h-full">
+                      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+                        <CardTitle className="text-sm text-purple-100">Highest CTC</CardTitle>
+                        <div className="p-2 bg-white/20 rounded-lg">
+                          <TrendingUp className="h-5 w-5 text-white" />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="relative z-10">
+                        <div className="text-4xl text-white mb-1">
+                          {placementStats.highestCTC} <span className="text-xl">LPA</span>
+                        </div>
+                        <p className="text-xs text-purple-100">Top package</p>
+                      </CardContent>
+                    </Card>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="font-medium mb-1">Highest CTC ({placementStats.highestCTC} LPA):</p>
+                  {highestCtcRows.length === 0 ? (
+                    <p className="text-muted-foreground">No data</p>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-0.5 text-xs">
+                      {highestCtcRows.map((row, i) => (
+                        <li key={i}>{getRowLabel(row)}</li>
+                      ))}
+                    </ul>
+                  )}
+                </TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Placement breakdown + metrics */}
@@ -710,57 +833,28 @@ export default function AdminDashboardPage() {
                       <span className="text-slate-700">Total Placed</span>
                       <Badge className="bg-orange-600">{placementStats.totalPlaced}</Badge>
                     </button>
-                  </div>
-
-                  {/* Stats by Industry */}
-                  <div>
-                    <h4 className="text-sm font-semibold text-slate-800 mb-3">Stats by Industry</h4>
-                    <div className="max-h-[320px] overflow-auto border border-orange-100 rounded-lg">
-                      <Table>
-                        <TableHeader className="bg-orange-50/80">
-                          <TableRow className="border-orange-200">
-                            <TableHead className="text-slate-700 text-xs">Industry</TableHead>
-                            <TableHead className="text-right text-slate-700 text-xs">Placed</TableHead>
-                            <TableHead className="text-right text-slate-700 text-xs">Avg CTC</TableHead>
-                            <TableHead className="text-right text-slate-700 text-xs">Median CTC</TableHead>
-                            <TableHead className="text-right text-slate-700 text-xs">Min CTC</TableHead>
-                            <TableHead className="text-right text-slate-700 text-xs">Highest CTC</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {industryStats.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={6} className="text-center text-slate-500 text-sm py-4">
-                                No industry data
-                              </TableCell>
-                            </TableRow>
-                          ) : (
-                            industryStats.map((s, idx) => (
-                              <TableRow key={idx} className="border-orange-100">
-                                <TableCell className="text-slate-700 font-medium text-sm py-2">
-                                  {s.industry}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600 text-sm py-2">
-                                  {s.totalPlaced}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600 text-sm py-2">
-                                  {s.avgCtc > 0 ? `${s.avgCtc} LPA` : "—"}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600 text-sm py-2">
-                                  {s.medianCtc > 0 ? `${s.medianCtc} LPA` : "—"}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600 text-sm py-2">
-                                  {s.minCtc > 0 ? `${s.minCtc} LPA` : "—"}
-                                </TableCell>
-                                <TableCell className="text-right text-slate-600 text-sm py-2">
-                                  {s.maxCtc > 0 ? `${s.maxCtc} LPA` : "—"}
-                                </TableCell>
-                              </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("ppi");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg hover:bg-yellow-100 hover:border-yellow-300 transition-colors cursor-pointer text-left"
+                    >
+                      <span className="text-slate-700">Total PPI&apos;s</span>
+                      <Badge className="bg-yellow-600">{placementStats.totalPPIs}</Badge>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setBreakdownFilter("unplaced");
+                        setActiveTab("records");
+                      }}
+                      className="w-full flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 transition-colors cursor-pointer text-left"
+                    >
+                      <span className="text-slate-700">Total Unplaced</span>
+                      <Badge variant="destructive">{placementStats.totalUnplaced}</Badge>
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -771,17 +865,135 @@ export default function AdminDashboardPage() {
                     Additional Metrics
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <span className="text-slate-700">Total PPI&apos;s</span>
-                      <Badge className="bg-yellow-600">{placementStats.totalPPIs}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
-                      <span className="text-slate-700">Total Unplaced</span>
-                      <Badge variant="destructive">{placementStats.totalUnplaced}</Badge>
-                    </div>
-                  </div>
+                <CardContent className="pt-6 space-y-6">
+                  <h4 className="text-sm font-semibold text-slate-800">Stats by Industry</h4>
+                  <p className="text-xs text-slate-500 -mt-2">
+                    Click a segment or row to view those students in Individual records.
+                  </p>
+                  {industryStats.length > 0 ? (
+                    <>
+                      <div className="h-[280px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={industryStats.map((s) => ({
+                                name: s.industry || "—",
+                                value: s.totalPlaced,
+                              }))}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={100}
+                              paddingAngle={2}
+                              dataKey="value"
+                              onClick={(data: { name?: string; value?: number }) => {
+                                if (data?.name != null) {
+                                  const industry = industryStats.find(
+                                    (s) => (s.industry || "—") === data.name
+                                  )?.industry ?? data.name;
+                                  setSelectedIndustryFilter(industry === "—" ? null : industry);
+                                  setActiveTab("records");
+                                }
+                              }}
+                              style={{ cursor: "pointer" }}
+                            >
+                              {industryStats.map((s, idx) => {
+                                const name = s.industry || "—";
+                                const isSelected =
+                                  selectedIndustryFilter != null &&
+                                  name.toLowerCase() === selectedIndustryFilter.toLowerCase();
+                                const COLORS = [
+                                  "#ea580c",
+                                  "#2563eb",
+                                  "#16a34a",
+                                  "#ca8a04",
+                                  "#9333ea",
+                                  "#0891b2",
+                                  "#dc2626",
+                                  "#64748b",
+                                ];
+                                return (
+                                  <Cell
+                                    key={idx}
+                                    fill={COLORS[idx % COLORS.length]}
+                                    opacity={isSelected ? 1 : 0.85}
+                                    stroke={isSelected ? "#0f172a" : undefined}
+                                    strokeWidth={isSelected ? 2 : 0}
+                                  />
+                                );
+                              })}
+                            </Pie>
+                            <Tooltip
+                              formatter={(value: number, name: string) => {
+                                const pct =
+                                  placementStats.totalPlaced > 0
+                                    ? ((value / placementStats.totalPlaced) * 100).toFixed(1)
+                                    : "0";
+                                return `${name}: ${value} placed (${pct}%)`;
+                              }}
+                              contentStyle={{ borderRadius: "8px", border: "1px solid #fed7aa" }}
+                            />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <div className="max-h-[320px] overflow-auto border border-orange-100 rounded-lg">
+                        <Table>
+                          <TableHeader className="bg-orange-50/80">
+                            <TableRow className="border-orange-200">
+                              <TableHead className="text-slate-700 text-xs">Industry</TableHead>
+                              <TableHead className="text-right text-slate-700 text-xs">Placed</TableHead>
+                              <TableHead className="text-right text-slate-700 text-xs">Avg CTC</TableHead>
+                              <TableHead className="text-right text-slate-700 text-xs">Median CTC</TableHead>
+                              <TableHead className="text-right text-slate-700 text-xs">Min CTC</TableHead>
+                              <TableHead className="text-right text-slate-700 text-xs">Highest CTC</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {industryStats.map((s, idx) => {
+                              const name = s.industry || "—";
+                              const isSelected =
+                                selectedIndustryFilter != null &&
+                                name.toLowerCase() === selectedIndustryFilter.toLowerCase();
+                              return (
+                                <TableRow
+                                  key={idx}
+                                  className={`border-orange-100 cursor-pointer hover:bg-orange-50/70 ${
+                                    isSelected ? "bg-orange-100" : ""
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedIndustryFilter(name === "—" ? null : s.industry);
+                                    setActiveTab("records");
+                                  }}
+                                >
+                                  <TableCell className="text-slate-700 font-medium text-sm py-2">
+                                    {s.industry}
+                                  </TableCell>
+                                  <TableCell className="text-right text-slate-600 text-sm py-2">
+                                    {s.totalPlaced}
+                                  </TableCell>
+                                  <TableCell className="text-right text-slate-600 text-sm py-2">
+                                    {s.avgCtc > 0 ? `${s.avgCtc} LPA` : "—"}
+                                  </TableCell>
+                                  <TableCell className="text-right text-slate-600 text-sm py-2">
+                                    {s.medianCtc > 0 ? `${s.medianCtc} LPA` : "—"}
+                                  </TableCell>
+                                  <TableCell className="text-right text-slate-600 text-sm py-2">
+                                    {s.minCtc > 0 ? `${s.minCtc} LPA` : "—"}
+                                  </TableCell>
+                                  <TableCell className="text-right text-slate-600 text-sm py-2">
+                                    {s.maxCtc > 0 ? `${s.maxCtc} LPA` : "—"}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-slate-500 py-4">No industry data</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -958,6 +1170,8 @@ export default function AdminDashboardPage() {
                     {breakdownFilter === "campus" && "Campus Placed"}
                     {breakdownFilter === "off" && "Off Campus Placed"}
                     {breakdownFilter === "total" && "Total Placed"}
+                    {breakdownFilter === "ppi" && "Total PPI's"}
+                    {breakdownFilter === "unplaced" && "Total Unplaced"}
                   </strong>{" "}
                   ({filteredRows.length} student{filteredRows.length !== 1 ? "s" : ""})
                 </span>
@@ -966,6 +1180,22 @@ export default function AdminDashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => setBreakdownFilter(null)}
+                  className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                >
+                  Show all records
+                </Button>
+              </div>
+            )}
+            {selectedIndustryFilter && (
+              <div className="mt-4 flex items-center justify-between gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                <span className="text-sm text-slate-700">
+                  Showing only industry: <strong>{selectedIndustryFilter}</strong> ({filteredRows.length} student{filteredRows.length !== 1 ? "s" : ""})
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedIndustryFilter(null)}
                   className="border-orange-300 text-orange-700 hover:bg-orange-100"
                 >
                   Show all records
@@ -1089,7 +1319,7 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-[70vh] overflow-auto">
+            <div className="max-h-[70vh] overflow-auto px-6">
               {loading && (
                 <div className="p-8 text-center text-slate-500">
                   Loading...
@@ -1099,51 +1329,53 @@ export default function AdminDashboardPage() {
                 <div className="p-8 text-center text-red-600">{error}</div>
               )}
               {!loading && !error && (
-                <Table>
-                  <TableHeader className="bg-orange-50/80 sticky top-0 z-10">
-                    <TableRow className="border-orange-200">
-                      {columns.map((col) => (
-                        <TableHead
-                          key={col}
-                          className="text-slate-700 whitespace-nowrap"
-                        >
-                          {col}
-                        </TableHead>
-                      ))}
-                      <TableHead className="w-[80px] text-slate-700">
-                        Actions
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRows.map((row) => (
-                      <TableRow
-                        key={row.__index}
-                        className="border-orange-100 hover:bg-orange-50/50"
-                      >
-                        {columns.map((col) => (
-                          <TableCell
+                <div className="rounded-lg border border-orange-100 overflow-hidden">
+                  <Table>
+                    <TableHeader className="bg-orange-50/80 sticky top-0 z-10">
+                      <TableRow className="border-orange-200">
+                        {displayColumns.map((col, idx) => (
+                          <TableHead
                             key={col}
-                            className="text-slate-700 py-2 whitespace-nowrap max-w-[200px] truncate"
-                            title={String(row[col] ?? "")}
+                            className={`text-slate-700 whitespace-nowrap ${idx === 0 ? "pl-4" : ""} ${idx === displayColumns.length - 1 ? "pr-4" : ""}`}
                           >
-                            {String(row[col] ?? "")}
-                          </TableCell>
+                            {col}
+                          </TableHead>
                         ))}
-                        <TableCell className="py-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openEdit(row)}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        <TableHead className="w-[80px] text-slate-700 pr-4">
+                          Actions
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRows.map((row) => (
+                        <TableRow
+                          key={row.__index}
+                          className="border-orange-100 hover:bg-orange-50/50"
+                        >
+                          {displayColumns.map((col, idx) => (
+                            <TableCell
+                              key={col}
+                              className={`text-slate-700 py-2 whitespace-nowrap max-w-[200px] truncate ${idx === 0 ? "pl-4" : ""} ${idx === displayColumns.length - 1 ? "pr-4" : ""}`}
+                              title={String(row[col] ?? "")}
+                            >
+                              {String(row[col] ?? "")}
+                            </TableCell>
+                          ))}
+                          <TableCell className="py-2 pr-4">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => openEdit(row)}
+                              className="text-orange-600 hover:text-orange-700"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </div>
           </CardContent>
@@ -1159,18 +1391,103 @@ export default function AdminDashboardPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {editRow &&
-              columns.map((col) => (
-                <div key={col} className="grid grid-cols-3 items-center gap-2">
-                  <Label className="text-right">{col}</Label>
-                  <Input
-                    className="col-span-2"
-                    value={editForm[col] ?? ""}
-                    onChange={(e) =>
-                      setEditForm((prev) => ({ ...prev, [col]: e.target.value }))
-                    }
-                  />
-                </div>
-              ))}
+              displayColumns.map((col) => {
+                const value = (editForm[col] ?? "").trim();
+                const isStatus = (col ?? "").trim().toLowerCase() === "status";
+                const isIndustry = (col ?? "").trim().toLowerCase() === "industry";
+                const isYoe = yoeColumn != null && col === yoeColumn;
+                const EMPTY_SELECT = "__empty__";
+                if (isStatus) {
+                  const options = [...new Set([...statusOptions, value].filter(Boolean))].sort();
+                  return (
+                    <div key={col} className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-right">{col}</Label>
+                      <Select
+                        value={value || EMPTY_SELECT}
+                        onValueChange={(v) =>
+                          setEditForm((prev) => ({ ...prev, [col]: v === EMPTY_SELECT ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger className="col-span-2">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EMPTY_SELECT}>—</SelectItem>
+                          {options.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                }
+                if (isIndustry) {
+                  const options = [...new Set([...industryOptions, value].filter(Boolean))].sort();
+                  return (
+                    <div key={col} className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-right">{col}</Label>
+                      <Select
+                        value={value || EMPTY_SELECT}
+                        onValueChange={(v) =>
+                          setEditForm((prev) => ({ ...prev, [col]: v === EMPTY_SELECT ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger className="col-span-2">
+                          <SelectValue placeholder="Select industry" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EMPTY_SELECT}>—</SelectItem>
+                          {options.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                }
+                if (isYoe) {
+                  const options = [...new Set([...yoeOptions, value].filter(Boolean))].sort();
+                  return (
+                    <div key={col} className="grid grid-cols-3 items-center gap-2">
+                      <Label className="text-right">{col}</Label>
+                      <Select
+                        value={value || EMPTY_SELECT}
+                        onValueChange={(v) =>
+                          setEditForm((prev) => ({ ...prev, [col]: v === EMPTY_SELECT ? "" : v }))
+                        }
+                      >
+                        <SelectTrigger className="col-span-2">
+                          <SelectValue placeholder="Select YoE" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={EMPTY_SELECT}>—</SelectItem>
+                          {options.map((opt) => (
+                            <SelectItem key={opt} value={opt}>
+                              {opt}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  );
+                }
+                return (
+                  <div key={col} className="grid grid-cols-3 items-center gap-2">
+                    <Label className="text-right">{col}</Label>
+                    <Input
+                      className="col-span-2"
+                      value={editForm[col] ?? ""}
+                      onChange={(e) =>
+                        setEditForm((prev) => ({ ...prev, [col]: e.target.value }))
+                      }
+                    />
+                  </div>
+                );
+              })}
             {saveError && (
               <p className="text-sm text-red-600">{saveError}</p>
             )}
